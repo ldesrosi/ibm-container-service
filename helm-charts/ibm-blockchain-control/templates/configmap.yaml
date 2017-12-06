@@ -10,21 +10,29 @@ data:
 {{ include (print .Template.BasePath "/config/_crypto-config.yaml.tpl") . | indent 4 }}
   setup.sh: |
 {{ include (print .Template.BasePath "/config/_setup.sh.tpl") . | indent 4 }}
+  quickSetup.sh: |
+{{ include (print .Template.BasePath "/config/_quickSetup.sh.tpl") . | indent 4 }}
   ca.yaml: |
 {{ include (print .Template.BasePath "/config/_ca.yaml.tpl") . | indent 4 }}
 {{- range .Values.ca.sub_cas }}
   {{ .name | lower }}-ca.yaml: |
 {{ include (print $.Template.BasePath "/config/_ca-orgs.yaml.tpl") . | indent 4 }}  
-  {{ .name | lower }}-profile.yaml: |
+  {{ .org.name | lower }}-profile.json: |
 {{ include (print $.Template.BasePath "/config/_composerProfile.header.json.tpl") $ | indent 4 }}   
 {{ include (print $.Template.BasePath "/config/_composerProfile.json.tpl") . | indent 4 }}  
 {{ include (print $.Template.BasePath "/config/_composerProfile.footer.json.tpl") $ | indent 4 }} 
 {{- end }}
   joinChannel.sh: |
 {{ include (print .Template.BasePath "/config/_joinChannel.sh.tpl") . | indent 4 }}
-  deployChaincode.sh: |
-{{ include (print .Template.BasePath "/config/_deployChaincode.sh.tpl") . | indent 4 }}
+  installChaincode.sh: |
+{{ include (print .Template.BasePath "/config/_installChaincode.sh.tpl") . | indent 4 }}
+  instantiateChaincode.sh: |
+{{ include (print .Template.BasePath "/config/_instantiateChaincode.sh.tpl") . | indent 4 }}
   createChannel.sh: |
 {{ include (print .Template.BasePath "/config/_createChannel.sh.tpl") . | indent 4 }}
   cardImport.sh: |
 {{ include (print .Template.BasePath "/config/_cardImport.sh.tpl") . | indent 4 }}
+{{- range .Values.orgs }}
+  {{ .org.name | lower }}-env.sh: |
+{{ include (print $.Template.BasePath "/config/_env.sh.tpl") . | indent 4 }}
+{{- end }}

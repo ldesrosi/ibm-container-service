@@ -1,9 +1,9 @@
 #!/bin/sh
 
-if [ $# -ne 2 ]
+if [ $# -ne 5 ];
   then
     echo "cardImport.sh <COMPOSER-PROFILE> <CARD_NAME> <CHANNEL_ADMIN> <ADMIN_CERT> <ADMIN_KEY>"
-    exit -1
+    exit 255
 fi
 
 PROFILE=$1
@@ -16,3 +16,5 @@ composer card create -f ${CARD}.card -p $PROFILE -u ${CARD} -r ${CARD} -r ${ADMI
                      -c ${ADMIN_CERT} \
                      -k ${ADMIN_KEY}
 composer card import -f ${CARD}.card
+
+touch /shared/composer_ready

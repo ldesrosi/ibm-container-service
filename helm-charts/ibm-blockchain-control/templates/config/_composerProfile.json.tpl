@@ -6,8 +6,8 @@
         {{- range .org.anchor_peers }}
         {
 
-            "requestURL": "grpc://{{ .service.name }}}:{{ .service.externalPort }}",
-            "eventURL": "grpc://{{ .service.name }}}:{{ .service.eventExternalPort }}"
+            "requestURL": "grpc://{{ .service.name }}:{{ .service.externalPort }}",
+            "eventURL": "grpc://{{ .service.name }}:{{ .service.eventExternalPort }}"
         },
         {{- end }}
     ],

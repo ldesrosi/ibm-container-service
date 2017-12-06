@@ -9,16 +9,17 @@ fi
 PROFILE=$1
 export FABRIC_CFG_PATH=/shared
 
-#Ensure all scripts are executable
-chmod +x /blockchain-config/*.sh
-
 # We first ensure that the volume is clean from previous installs
 rm -rf /shared/*
+
+#Ensure all scripts are executable
+chmod +x /blockchain-config/*.sh
 
 # Move files from bootstrap volumes to preserve them
 cp /blockchain-config/crypto-config.yaml /shared
 cp /blockchain-config/configtx.yaml /shared
 
+#Move certificate authority configuration files
 mkdir /shared/cas
 cp /blockchain-config/ca.yaml /shared/cas
 for filename in /blockchain-config/*-ca.yaml; do
@@ -28,6 +29,22 @@ for filename in /blockchain-config/*-ca.yaml; do
   mkdir /shared/cas/$subca_dir
   cp $filename /shared/cas/$subca_dir/ca.yaml
 done
+
+#Setup scripts in the shared folder
+mkdir /shared/script/
+cp /blockchain-config/createChannel.sh /shared/script
+cp /blockchain-config/joinChannel.sh /shared/script
+cp /blockchain-config/installChaincode.sh /shared/script
+cp /blockchain-config/instantiateChaincode.sh /shared/script
+cp /blockchain-config/cardImport.sh /shared/script
+cp /blockchain-config/quickSetup.sh /shared/script
+
+# Move environment config file to the correct folder
+mkdir /shared/env/
+cp /blockchain-config/*-env.sh /shared/env
+
+# Setup the composer connection profile
+cp /blockchain-config/*-profile.json /shared
 
 cd /shared
 

@@ -11,6 +11,9 @@ spec:
         name: composer-rest-server
     spec:
       volumes:
+      - name: shared
+        persistentVolumeClaim:
+         claimName: shared      
       - name: composer-card-store
         persistentVolumeClaim:
           claimName: composer-pvc
@@ -26,3 +29,10 @@ spec:
         volumeMounts:
         - name: composer-card-store
           mountPath: /home/composer/.composer
+      initContainers:
+      - name: init-rest
+        image: busybox
+        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/composer_ready ]; do echo Waiting for composer config; sleep 1; done;"]
+        volumeMounts:
+        - mountPath: /shared
+          name: shared          

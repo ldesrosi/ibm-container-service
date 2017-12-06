@@ -1,3 +1,4 @@
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -6,7 +7,8 @@ spec:
   replicas: 1
   template:
     metadata:
-      name: blockchain-control
+      labels:
+        name: blockchain-control
     spec:
       volumes:
         - name: shared
@@ -17,26 +19,12 @@ spec:
             name: blockchain-config
         - name: composer-card-store
           persistentVolumeClaim:
-          claimName: composer-pvc      
+            claimName: composer-pvc      
       containers:
-      - name: tools
+      - name: cli
         image: "{{ .Values.tools.image.repository }}:{{ .Values.tools.image.tag }}"
         imagePullPolicy: Always
-        command: ["sh", "-c", "
-        chmod +x /blockchain-config/setup.sh
-        /blockchain-config/setup.sh {{ .Values.tools.profile }}
-        trap : TERM INT; sleep infinity & wait"]
-        volumeMounts:
-        - mountPath: /blockchain-config
-          name: blockchain-config        
-        - mountPath: /shared
-          name: shared    
-        - mountPath: /home/composer/.composer
-          name: composer-card-store
-      - name: peers
-        image: "{{ .Values.peer.image.repository }}:{{ .Values.peer.image.tag }}"
-        imagePullPolicy: Always
-        command: ["sh", "-c", "trap : TERM INT; sleep infinity & wait"]
+        command: ["sh", "-c", "chmod +x /blockchain-config/setup.sh && /blockchain-config/setup.sh {{ .Values.tools.profile }} && trap : TERM INT; sleep infinity & wait"]
         volumeMounts:
         - mountPath: /blockchain-config
           name: blockchain-config        
@@ -47,7 +35,7 @@ spec:
       - name: composer
         image: "{{ .Values.composer.cli.repository }}:{{ .Values.composer.cli.tag }}"
         imagePullPolicy: Always
-        command: ["sh", "-c", "trap : TERM INT; sleep infinity & wait"]
+        command: ["sh", "-c", "trap : TERM INT; while sleep 3600; do :; done & wait"]
         volumeMounts:
         - mountPath: /blockchain-config
           name: blockchain-config        

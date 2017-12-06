@@ -1,4 +1,4 @@
 apiVersion: v1
 description: A Helm chart for Kubernetes
-name: blockchain-peer
+name: ibm-blockchain-peer
 version: 0.1.0

@@ -1,3 +1,3 @@
 #/bin/bash
 
-helm delete control ca orderer peer deploy --purge
+helm delete control ca orderer peer composer --purge
