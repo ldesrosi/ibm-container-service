@@ -1,0 +1,14 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: blockchain-ca
+  namespace: default
+data:
+  CONFIGYAML: /shared/cas/ca.yaml
+  FABRIC_CA_SERVER_CA_CERTFILE: /shared/crypto-config/ordererOrganizations/{{ .Values.orderers.domain }}/ca/ca.{{ .Values.orderers.domain }}-cert.pem
+  FABRIC_CA_SERVER_CA_KEYFILE: /shared/crypto-config/ordererOrganizations/{{ .Values.orderers.domain }}/ca/key.pem
+  FABRIC_CA_SERVER_DEBUG: "true"
+  FABRIC_CA_SERVER_TLS_ENABLED: "false"
+  FABRIC_CA_SERVER_TLS_CERTFILE: /shared/crypto-config/ordererOrganizations/{{ .Values.orderers.domain }}/tlsca/tlsca.{{ .Values.orderers.domain }}-cert.pem
+  FABRIC_CA_SERVER_TLS_KEYFILE: /shared/crypto-config/ordererOrganizations/{{ .Values.orderers.domain }}/tlsca/key.pem
+  GODEBUG: "netdns=go"

@@ -1,0 +1,23 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: blockchain-orderer
+  namespace: default
+data:
+  ORDERER_CFG_PATH: /shared/
+  ORDERER_GENERAL_LEDGERTYPE: file
+  ORDERER_FILELEDGER_LOCATION: /mnt/ledger/orderer1
+  ORDERER_GENERAL_BATCHTIMEOUT: 1s
+  ORDERER_GENERAL_BATCHSIZE_MAXMESSAGECOUNT: "10"
+  ORDERER_GENERAL_MAXWINDOWSIZE: "1000"
+  ORDERER_GENERAL_ORDERERTYPE: {{ .Values.orderers.type }}
+  ORDERER_GENERAL_LISTENADDRESS: 0.0.0.0
+  ORDERER_GENERAL_LISTENPORT: {{ .Values.orderers.service.internalPort | quote }}
+  ORDERER_GENERAL_LOGLEVEL: debug
+  ORDERER_GENERAL_LOCALMSPDIR: /shared/crypto-config/ordererOrganizations/{{ .Values.orderers.domain }}/orderers/{{ .Values.orderers.service.name }}.{{ .Values.orderers.domain }}/msp
+  ORDERER_GENERAL_LOCALMSPID: {{ .Values.orderers.id }}
+  ORDERER_GENERAL_GENESISMETHOD: file
+  ORDERER_GENERAL_GENESISFILE: /shared/orderer.block
+  ORDERER_GENERAL_GENESISPROFILE: initial
+  ORDERER_GENERAL_TLS_ENABLED: "false"
+  GODEBUG: "netdns=go"

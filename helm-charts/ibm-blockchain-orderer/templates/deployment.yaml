@@ -1,0 +1,33 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: blockchain-orderer
+spec:
+  replicas: {{ if eq .Values.orderers.type "solo" }}1{{ else }}.Values.orderers.replicaCount{{ end }} 
+  template:
+    metadata:
+      labels:
+        name: orderer
+    spec:
+      containers:
+      - name: orderer
+        image: "{{ .Values.orderers.image.repository}}:{{ .Values.orderers.image.tag}}"
+        command: ["sh", "-c", "orderer"]
+        envFrom:
+        - configMapRef:
+            name: blockchain-orderer
+        volumeMounts:
+        - mountPath: /shared
+          name: shared
+      initContainers:
+      - name: init-orderer
+        image: busybox
+        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/bootstrapped ]; do echo Waiting for bootstrap; sleep 1; done"]
+        volumeMounts:
+        - mountPath: /shared
+          name: shared         
+      volumes:
+      - name: shared
+        persistentVolumeClaim:
+          claimName: shared

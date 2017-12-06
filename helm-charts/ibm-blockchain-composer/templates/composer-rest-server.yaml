@@ -16,11 +16,11 @@ spec:
           claimName: composer-pvc
       containers:
       - name: composer-rest-server
-        image: hyperledger/composer-rest-server:0.16.0
-        imagePullPolicy: {{.Values.blockchain.pullPolicy}}
+        image: "{{ .Values.composer.rest.repository}}:{{ .Values.composer.rest.tag}}"
+        imagePullPolicy: {{.Values.composer.rest.pullPolicy}}
         env:
         - name: COMPOSER_CARD
-          value: {{.Values.blockchain.composerRestServerCard}}
+          value: {{.Values.composer.restServerCard}}
         - name: COMPOSER_NAMESPACES
           value: never
         volumeMounts:

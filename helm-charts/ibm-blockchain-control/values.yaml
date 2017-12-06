@@ -25,6 +25,10 @@ composer:
     repository: hyperledger/composer-playground
     tag: *composer_version
     pullPolicy: IfNotPresent
+  cli:
+    repository: hyperledger/composer-cli
+    tag: *composer_version
+    pullPolicy: IfNotPresent
   restServerCard: PeerAdmin
 ca:
   image:

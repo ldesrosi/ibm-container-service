@@ -1,0 +1,44 @@
+{{- range .Values.orgs }}  
+{{- $org_name := .org.name -}}
+{{- range .org.anchor_peers }} 
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .service.name }}
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: {{ $org_name | lower}}{{ .service.shortName }}
+    spec:
+      containers:
+      - name: peer
+        image: "{{ $.Values.peer.image.repository}}:{{ $.Values.peer.image.tag}}"
+        command: ["sh", "-c", "peer node start --peer-defaultchain=false"]
+        envFrom:
+        - configMapRef:
+            name: {{ .service.name }}      
+        volumeMounts:
+        - mountPath: /shared
+          name: shared
+        - mountPath: /host/var/run/docker.sock
+          name: dockersocket
+      initContainers:
+      - name: init-orderer
+        image: busybox
+        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/bootstrapped ]; do echo Waiting for bootstrap; sleep 1; done"]
+        volumeMounts:
+        - mountPath: /shared
+          name: shared    
+      volumes:
+      - name: shared
+        persistentVolumeClaim:
+          claimName: shared
+      - name: dockersocket
+        hostPath:
+          path: /var/run/docker.sock          
+{{- end }}
+{{- end }}          
+

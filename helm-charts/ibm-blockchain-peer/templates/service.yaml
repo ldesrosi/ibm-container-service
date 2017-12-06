@@ -1,0 +1,25 @@
+{{- range .Values.orgs }}  
+{{- $org_name := .org.name -}}
+{{- range .org.anchor_peers }}  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .service.name }}
+  labels:
+    run: {{ .service.name }}
+spec:
+  type: {{ .service.type }}
+  ports:
+    - port: {{ .service.externalPort }}
+      nodePort: {{ .service.internalPort }}
+      protocol: TCP
+      name: grpc
+    - port: {{ .service.eventInternalPort }}
+      nodePort: {{ .service.eventExternalPort }}
+      protocol: TCP
+      name: event      
+  selector:
+    name: {{ $org_name | lower }}{{ .service.shortName }}
+{{- end }}
+{{- end }}

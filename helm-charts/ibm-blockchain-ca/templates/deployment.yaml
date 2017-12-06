@@ -1,0 +1,32 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: blockchain-ca
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: ca
+    spec:
+      containers:
+      - name: ca
+        image: "{{ .Values.ca.image.repository}}:{{ .Values.ca.image.tag}}"
+        command: ["sh", "-c", "fabric-ca-server start -c ${CONFIGYAML}"]
+        envFrom:
+        - configMapRef:
+            name: blockchain-ca
+        volumeMounts:
+        - mountPath: /shared
+          name: shared
+      initContainers:
+      - name: init-ca
+        image: busybox
+        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/bootstrapped ]; do echo Waiting for bootstrap; sleep 1; done;"]
+        volumeMounts:
+        - mountPath: /shared
+          name: shared
+      volumes:
+      - name: shared
+        persistentVolumeClaim:
+          claimName: shared
