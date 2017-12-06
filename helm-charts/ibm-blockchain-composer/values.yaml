@@ -25,7 +25,7 @@ composer:
     repository: hyperledger/composer-playground
     tag: *composer_version
     pullPolicy: IfNotPresent
-  restServerCard: PeerAdmin
+  restServerCard: PeerAdmin@hlfv1
 ca:
   image:
     repository: ibmblockchain/fabric-ca

@@ -23,7 +23,7 @@ spec:
         imagePullPolicy: {{.Values.composer.rest.pullPolicy}}
         env:
         - name: COMPOSER_CARD
-          value: {{.Values.composer.restServerCard}}
+          value: {{ .Values.composer.restServerCard }}
         - name: COMPOSER_NAMESPACES
           value: never
         volumeMounts:
@@ -32,7 +32,9 @@ spec:
       initContainers:
       - name: init-rest
         image: busybox
-        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/composer_ready ]; do echo Waiting for composer config; sleep 1; done;"]
+        command: ["sh", "-c", "sleep 1 && while [ ! -f /home/composer/.composer/composer_ready ]; do echo Waiting for composer config; sleep 1; done;"]
         volumeMounts:
         - mountPath: /shared
-          name: shared          
+          name: shared
+        - name: composer-card-store
+          mountPath: /home/composer/.composer      

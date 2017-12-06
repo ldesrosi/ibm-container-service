@@ -3,12 +3,13 @@
         "name": "{{ .name | lower }}"
     },
     "peers": [
-        {{- range .org.anchor_peers }}
+        {{- range $i, $peer := .org.anchor_peers }}
         {
 
-            "requestURL": "grpc://{{ .service.name }}:{{ .service.externalPort }}",
-            "eventURL": "grpc://{{ .service.name }}:{{ .service.eventExternalPort }}"
-        },
+            "requestURL": "grpc://{{ $peer.service.name }}:{{ $peer.service.externalPort }}",
+            "eventURL": "grpc://{{ $peer.service.name }}:{{ $peer.service.eventExternalPort }}"
+        }
+        {{if $i}},{{end}}
         {{- end }}
     ],
     "mspID": "{{ .org.id }}",

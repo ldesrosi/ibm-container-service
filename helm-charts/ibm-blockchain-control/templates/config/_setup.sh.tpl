@@ -11,6 +11,7 @@ export FABRIC_CFG_PATH=/shared
 
 # We first ensure that the volume is clean from previous installs
 rm -rf /shared/*
+rm -rf /home/composer/.composer/*
 
 #Ensure all scripts are executable
 chmod +x /blockchain-config/*.sh
