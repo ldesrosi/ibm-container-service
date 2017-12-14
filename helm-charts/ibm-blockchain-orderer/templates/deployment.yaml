@@ -30,4 +30,4 @@ spec:
       volumes:
       - name: shared
         persistentVolumeClaim:
-          claimName: shared
+          claimName: shared-pvc

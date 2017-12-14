@@ -36,9 +36,9 @@ ca:
   main:
     replicaCount: 1
     service:
-      name: blockchain-ca
+      name: ca
       type: NodePort
-      externalPort: 30000
+      externalPort: 30001
       internalPort: 7054  
   sub_cas:
     - name: CA1
@@ -46,9 +46,9 @@ ca:
       admin: *admin_user
       password: *admin_password  
       service:
-        name: blockchain-ca
+        name: ca
         type: NodePort
-        externalPort: 30000
+        externalPort: 30001
         internalPort: 7054
       org: *Org1
     - name: CA2
@@ -56,11 +56,21 @@ ca:
       admin: *admin_user
       password: *admin_password  
       service:
-        name: blockchain-ca
+        name: ca
         type: NodePort
-        externalPort: 30000
+        externalPort: 30001
         internalPort: 7054
       org: *Org2
+    - name: CA3
+      replicaCount: 1
+      admin: *admin_user
+      password: *admin_password  
+      service:
+        name: ca
+        type: NodePort
+        externalPort: 30001
+        internalPort: 7054
+      org: *Org3      
 orderers:
   type: solo
   replicaCount: 1
@@ -73,7 +83,7 @@ orderers:
   id: OrdererMSP
   admin_principal: Role.MEMBER 
   service:
-    name: blockchain-orderer
+    name: orderer
     type: NodePort
     externalPort: 31010
     internalPort: 31010  
@@ -102,7 +112,7 @@ orgs:
       anchor_peers: 
         - service: &Org1_peers
             shortName: peer1
-            name: blockchain-org1peer1
+            name: org1peer1
             type: NodePort
             externalPort: 30110
             internalPort: 30110
@@ -118,10 +128,26 @@ orgs:
       anchor_peers: 
         - service: &Org2_peers
             shortName: peer1
-            name: blockchain-org2peer1
+            name: org2peer1
             type: NodePort
             externalPort: 30210
             internalPort: 30210 
             eventInternalPort: 30211
             eventExternalPort: 30211
+  - org: &Org3
+      name: Org3
+      id: Org3MSP
+      domain: org3.example.com
+      admin_principal: Role.MEMBER
+      departments:
+        - department1
+      anchor_peers: 
+        - service: &Org3_peers
+            shortName: peer1
+            name: org3peer1
+            type: NodePort
+            externalPort: 30310
+            internalPort: 30310 
+            eventInternalPort: 30311
+            eventExternalPort: 30311
 

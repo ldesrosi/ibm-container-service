@@ -11,12 +11,12 @@ spec:
         name: blockchain-control
     spec:
       volumes:
-        - name: shared
-          persistentVolumeClaim:
-            claimName: shared   
         - name: blockchain-config
           configMap:
             name: blockchain-config
+        - name: shared
+          persistentVolumeClaim:
+            claimName: shared-pvc            
         - name: composer-card-store
           persistentVolumeClaim:
             claimName: composer-pvc      

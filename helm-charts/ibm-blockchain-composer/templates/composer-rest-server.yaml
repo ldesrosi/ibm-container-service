@@ -13,7 +13,7 @@ spec:
       volumes:
       - name: shared
         persistentVolumeClaim:
-         claimName: shared      
+         claimName: shared-pvc
       - name: composer-card-store
         persistentVolumeClaim:
           claimName: composer-pvc

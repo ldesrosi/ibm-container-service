@@ -16,7 +16,7 @@ spec:
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: shared
+  name: shared-pvc
 spec:
   accessModes:
     - ReadWriteMany
