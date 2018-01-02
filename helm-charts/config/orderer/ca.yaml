@@ -1,0 +1,59 @@
+fabric_version: &fabric_version 1.0.4
+tools:
+  image:
+    repository: ibmblockchain/fabric-tools
+    tag: *fabric_version
+    pullPolicy: IfNotPresent
+ca:
+  image:
+    repository: ibmblockchain/fabric-ca
+    tag: *fabric_version
+    pullPolicy: IfNotPresent
+  admin: &admin_user admin
+  password: &admin_password adminpw  
+  main:
+    name: network-ca
+    domain: example.com
+    admin: *admin_user
+    password: *admin_password
+    DNs:
+      - C: UK
+        ST: "Hampshire"
+        L: "Hursley"
+        O: "IBM"
+        OU: "Composer"  
+    affiliations:
+      - name: org1
+        departments:
+        - department1
+      - name: org2
+        departments:
+        - department1
+        - department2
+    registrar:
+      roles: "orderer,peer,client,user,validator,auditor,ca"
+      delegatedRoles: "orderer,peer,client,user,validator,auditor,ca"
+      intermediateCA: true
+      revoker: true
+      genCRL: true
+      attributes: "*"
+    identities:
+      - name: org1admin
+        secret: adminpw
+        type: ca
+        affiliation: org1
+        attributes: "\"hf.Registrar.Roles=peer,client,user,validator,auditor\",\"hf.DelegatedRoles=peer,client,user,validator,auditor\",hf.IntermediateCA=true,hf.Revoker=true,hf.genCRL=true"
+      - name: org2admin
+        secret: adminpw
+        type: ca
+        affiliation: org2
+        attributes: "\"hf.Registrar.Roles=peer,client,user,validator,auditor\",\"hf.DelegatedRoles=peer,client,user,validator,auditor\",hf.IntermediateCA=true,hf.Revoker=true,hf.genCRL=true"
+    replicaCount: 1
+    service:
+      name: network-ca
+      type: NodePort
+      externalPort: 30000
+      internalPort: 7054  
+    sub_cas:
+
+

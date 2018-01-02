@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: id-mgmt-job-{{ .Release.Name | lower }}
+spec:
+  template:
+    metadata:
+      name: id-mgmt-job-{{ .Release.Name | lower }}
+    spec:
+      containers:
+      - name: id-mgmt-job-{{ .Release.Name | lower }}
+        image: "{{ .Values.tools.image.repository }}:{{ .Values.tools.image.tag }}"
+        command: ["sh", "-c", "chmod +x /ca-config/processId.sh && /ca-config/processId.sh"]
+        volumeMounts:
+          - mountPath: /ca
+            name: ca
+          - mountPath: /ca-config
+            name: ca-config
+      restartPolicy: Never
+      volumes:
+        - name: ca
+          persistentVolumeClaim:
+            claimName: ca-pvc-{{ .Release.Name | lower }}
+        - name: ca-config
+          configMap:
+            name: ca-config-{{ .Release.Name | lower }}

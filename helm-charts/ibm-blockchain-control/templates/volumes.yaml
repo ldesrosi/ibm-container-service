@@ -1,6 +1,35 @@
 kind: PersistentVolume
 apiVersion: v1
 metadata:
+  name: ca-pv
+  labels:
+    type: local
+    name: ca
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/ca"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: ca-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  selector:
+    matchLabels:
+      name: ca
+---
+kind: PersistentVolume
+apiVersion: v1
+metadata:
   name: shared-pv
   labels:
     type: local

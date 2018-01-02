@@ -35,17 +35,22 @@
 #
 #############################################################################
 
+{{ if .service }}
 # Server's listening port (default: 7054)
 port: {{ .service.internalPort }}
+{{ end }}
 
 # Enables debug logging (default: false)
-debug: true
+debug: false
+
+# Size limit of an acceptable CRL in bytes (default: 512000)
+crlsizelimit: 512000
 
 #############################################################################
 #  TLS section for the server's listening port
 #
 #  The following types are supported for client authentication: NoClientCert,
-#  RequestClientCert, RequireAnyClientCert, VerfiyClientCertIfGiven,
+#  RequestClientCert, RequireAnyClientCert, VerifyClientCertIfGiven,
 #  and RequireAndVerifyClientCert.
 #
 #  Certfiles is a list of root certificate authorities that the server uses
@@ -55,11 +60,12 @@ tls:
   # Enable TLS (default: false)
   enabled: false
   # TLS for the server's listening port
-  certfile: ca-cert.pem
-  keyfile: ca-key.pem
+  certfile: /ca/cas/msp/tls/tls-cert.pem
+  keyfile:
   clientauth:
     type: noclientcert
     certfiles:
+
 #############################################################################
 #  The CA section contains information related to the Certificate Authority
 #  including the name of the CA, which should be unique for all members
@@ -72,14 +78,26 @@ tls:
 #############################################################################
 ca:
   # Name of this CA
-  name: {{ .name }}    
+  name: {{ .name }}
   # Key file (default: ca-key.pem)
-  keyfile: /shared/crypto-config/peerOrganizations/{{ .org.domain }}/ca/key.pem
+  keyfile: /ca/cas/msp/keystore/key.pem
   # Certificate file (default: ca-cert.pem)
-  certfile: /shared/crypto-config/peerOrganizations/{{ .org.domain }}/ca/ca.{{ .org.domain }}-cert.pem
+  certfile: /ca/cas/msp/signcerts/ca.{{ .domain }}-cert.pem
   # Chain file (default: chain-cert.pem)
   #chainfile: ca-chain.pem
-  chainfile: /shared/crypto-config/peerOrganizations/{{ .org.domain }}/ca/ca.{{ .org.domain }}-chain.pem  
+  chainfile: /ca/cas/msp/cacerts/ca.{{ .domain }}-chain.pem
+
+#############################################################################
+#  The gencrl REST endpoint is used to generate a CRL that contains revoked
+#  certificates. This section contains configuration options that are used
+#  during gencrl request processing.
+#############################################################################
+crl:
+  # Specifies expiration for the generated CRL. The number of hours
+  # specified by this property is added to the UTC time, the resulting time
+  # is used to set the 'Next Update' date of the CRL.
+  expiry: 24h
+  
 #############################################################################
 #  The registry section controls how the fabric-ca-server does two things:
 #  1) authenticates enrollment requests which contain a username and password
@@ -106,10 +124,12 @@ registry:
        type: client
        affiliation: ""
        attrs:
-          hf.Registrar.Roles: "client,user,peer,validator,auditor,ca"
-          hf.Registrar.DelegateRoles: "client,user,validator,auditor"
-          hf.Revoker: true
-          hf.IntermediateCA: true
+          hf.Registrar.Roles: "{{ .registrar.roles }}"
+          hf.Registrar.DelegateRoles: "{{ .registrar.delegatedRoles }}"
+          hf.Revoker: {{ .registrar.revoker }}
+          hf.IntermediateCA: {{ .registrar.intermediateCA }}
+          hf.GenCRL: {{ .registrar.genCRL }}
+          hf.Registrar.Attributes: "{{ .registrar.attributes }}"
 
 #############################################################################
 #  Database section
@@ -123,7 +143,7 @@ registry:
 #############################################################################
 db:
   type: sqlite3
-  datasource: /opt/fabric-{{ .name | lower }}-server.db
+  datasource: /ca/fabric-ca-server.db
   tls:
       enabled: false
       certfiles:
@@ -155,49 +175,101 @@ ldap:
 #  Affiliation section
 #############################################################################
 affiliations:
-  {{ .org.name | lower }}:
-  {{- range .org.departments }}
+  {{- range .affiliations }}
+  {{ .name | lower }}:
+  {{- range .departments }}
     - {{ . }}
   {{- end }}
+  {{- end }}
+
 
 #############################################################################
 #  Signing section
+#
+#  The "default" subsection is used to sign enrollment certificates;
+#  the default expiration ("expiry" field) is "8760h", which is 1 year in hours.
+#
+#  The "ca" profile subsection is used to sign intermediate CA certificates;
+#  the default expiration ("expiry" field) is "43800h" which is 5 years in hours.
+#  Note that "isca" is true, meaning that it issues a CA certificate.
+#  A maxpathlen of 0 means that the intermediate CA cannot issue other
+#  intermediate CA certificates, though it can still issue end entity certificates.
+#  (See RFC 5280, section 4.2.1.9)
+#
+#  The "tls" profile subsection is used to sign TLS certificate requests;
+#  the default expiration ("expiry" field) is "8760h", which is 1 year in hours.
 #############################################################################
 signing:
+    default:
+      usage:
+        - digital signature
+      expiry: 8760h
     profiles:
       ca:
          usage:
            - cert sign
-         expiry: 8000h
+           - crl sign
+         expiry: 43800h
          caconstraint:
-           isca: true
-    default:
-      usage:
-        - cert sign
-      expiry: 8000h
+            isca: true
+            {{ if and .root false }}
+            maxpathlen: 1
+            {{- else -}}
+            maxpathlen: 0
+            {{- end }}
+      tls:
+         usage:
+            - signing
+            - key encipherment
+            - server auth
+            - client auth
+            - key agreement
+         expiry: 8760h
 
 ###########################################################################
-#  Certificate Signing Request section for generating the CA certificate
+#  Certificate Signing Request (CSR) section.
+#  This controls the creation of the root CA certificate.
+#  The expiration for the root CA certificate is configured with the
+#  "ca.expiry" field below, whose default value is "131400h" which is
+#  15 years in hours.
+#  The pathlength field is used to limit CA certificate hierarchy as described
+#  in section 4.2.1.9 of RFC 5280.
+#  Examples:
+#  1) No pathlength value means no limit is requested.
+#  2) pathlength == 1 means a limit of 1 is requested which is the default for
+#     a root CA.  This means the root CA can issue intermediate CA certificates,
+#     but these intermediate CAs may not in turn issue other CA certificates
+#     though they can still issue end entity certificates.
+#  3) pathlength == 0 means a limit of 0 is requested;
+#     this is the default for an intermediate CA, which means it can not issue
+#     CA certificates though it can still issue end entity certificates.
 ###########################################################################
 csr:
-   cn: fabric-ca-server-{{.org.name | lower }}
-   names:
-      - C: US
-        ST: "North Carolina"
-        L:
-        O: Hyperledger
-        OU: Fabric
-   hosts:
-     - 6a0534cb7c7d
-   ca:
-      pathlen:
-      pathlenzero:
-      expiry:
+{{ if and .root false }}
+    cn: {{ .name | lower }}
+{{ end }}
+    names:
+    {{- range .DNs }}
+      - C: {{ .C }}
+        ST: {{ .ST }}
+        L: {{ .L }}
+        O: {{ .O }}
+        OU: {{ .OU }}
+    {{- end }}
+    hosts:
+     - {{ .name | lower }}.{{ .domain }}
+     - localhost
+    ca:
+      expiry: 131400h
+      {{ if and .root false }}
+      pathlength: 1
+      {{- else -}}
+      pathlength: 0
+      {{- end }}
 #############################################################################
 # BCCSP (BlockChain Crypto Service Provider) section is used to select which
 # crypto library implementation to use
 #############################################################################
-
 bccsp:
     default: SW
     sw:
@@ -205,8 +277,7 @@ bccsp:
         security: 256
         filekeystore:
             # The directory used for the software file-based keystore
-            #keystore: /opt/keystore
-            keystore: /shared/crypto-config/peerOrganizations/{{ .org.domain }}/ca
+            keystore: /ca/cas/msp/keystore
 
 #############################################################################
 # The fabric-ca-server init and start commands support the following two
@@ -234,8 +305,9 @@ bccsp:
 #
 #############################################################################
 
-cacount: 
+cacount:
 
 cafiles:
-
-  
+  {{- range $index, $org := .sub_cas }}
+  - /ca/cas/{{ .name | lower }}/ca.yaml
+  {{- end }}

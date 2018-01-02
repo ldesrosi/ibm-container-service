@@ -1,0 +1,4 @@
+Name; Secret; Type; Affiliation; Attrs
+org1admin;adminpw;ca;org1;"hf.Registrar.Roles=peer,client,user,validator,auditor","hf.DelegatedRoles=peer,client,user,validator,auditor",hf.IntermediateCA=true,hf.Revoker=true,hf.genCRL=true
+org2admin;adminpw;ca;org2;"hf.Registrar.Roles=peer,client,user,validator,auditor","hf.DelegatedRoles=peer,client,user,validator,auditor",hf.IntermediateCA=true,hf.Revoker=true,hf.genCRL=true
+org3admin;adminpw;ca;org3;"hf.Registrar.Roles=peer,client,user,validator,auditor","hf.DelegatedRoles=peer,client,user,validator,auditor",hf.IntermediateCA=true,hf.Revoker=true,hf.genCRL=true

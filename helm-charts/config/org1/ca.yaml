@@ -1,0 +1,46 @@
+fabric_version: &fabric_version 1.0.4
+tools:
+  image:
+    repository: ibmblockchain/fabric-tools
+    tag: *fabric_version
+    pullPolicy: IfNotPresent
+ca:
+  image:
+    repository: ibmblockchain/fabric-ca
+    tag: *fabric_version
+    pullPolicy: IfNotPresent
+  admin: &admin_user org1admin
+  password: &admin_password adminpw  
+  main:
+    name: org1-ca
+    domain: org1.example.com
+    admin: *admin_user
+    password: *admin_password
+    root:
+      hostname: network-ca
+      port: 7054
+    DNs:
+      - C: UK
+        ST: "Hampshire"
+        L: "Hursley"
+        O: "IBM"
+        OU: "Composer"  
+    affiliations:
+      - name: org1
+        departments:
+        - department1
+        - department2
+    registrar:
+      roles: "peer,client,user,validator,auditor"
+      delegatedRoles: "peer,client,user,validator,auditor"
+      intermediateCA: true
+      revoker: true
+      genCRL: true
+      attributes: "*"
+    replicaCount: 1
+    service:
+      name: org1-ca
+      type: NodePort
+      externalPort: 30001
+      internalPort: 7054  
+    sub_cas:

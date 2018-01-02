@@ -26,7 +26,7 @@ spec:
         - mountPath: /host/var/run/docker.sock
           name: dockersocket
       initContainers:
-      - name: init-orderer
+      - name: init-peer
         image: busybox
         command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/bootstrapped ]; do echo Waiting for bootstrap; sleep 1; done"]
         volumeMounts:

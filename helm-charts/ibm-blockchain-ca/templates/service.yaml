@@ -7,7 +7,7 @@ metadata:
 spec:
   type:  {{ .Values.ca.main.service.type }}
   selector:
-    name: ca
+    name: ca-{{ .Release.Name | lower }}
   ports:
   - protocol: TCP
     port: {{ .Values.ca.main.service.internalPort }}
