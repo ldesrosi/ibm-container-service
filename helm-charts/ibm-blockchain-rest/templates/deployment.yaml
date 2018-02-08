@@ -1,0 +1,41 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name | lower }}
+spec:
+  replicas: {{ .Values.rest.replicaCount }}
+  template:
+    metadata:
+      labels:
+        name: {{ .Release.Name | lower }}
+    spec:
+      containers:
+      - name: rest-server
+        image: "{{ .Values.images.rest.repository}}:{{ .Values.images.rest.tag}}"
+        imagePullPolicy: {{.Values.images.rest.pullPolicy}}
+        env:
+        - name: COMPOSER_CARD
+          value: {{ .Values.rest.card.name }}
+        - name: COMPOSER_NAMESPACES
+          value: never
+        volumeMounts:
+        - name: composer-card-store
+          mountPath: /home/composer/.composer
+        - mountPath: /rest-config
+          name: rest-config  
+      initContainers:
+      - name: init-rest-server
+        image: "{{ .Values.images.tools.repository}}:{{ .Values.images.tools.tag}}"
+        command: ["sh", "-c", "chmod +x /rest-config/setup.sh && /rest-config/setup.sh"]
+        volumeMounts:
+        - name: composer-card-store
+          mountPath: /home/composer/.composer
+        - mountPath: /rest-config
+          name: rest-config  
+      volumes:
+      - name: composer-card-store
+        persistentVolumeClaim:
+          claimName: composer-pvc-{{ $.Release.Name | lower }}
+      - name: rest-config
+        configMap:
+          name: rest-config-{{ .Release.Name | lower }}

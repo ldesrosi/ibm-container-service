@@ -1,13 +1,27 @@
 fabric_version: &fabric_version x86_64-1.1.0-alpha
+composer_version: &composer_version 0.16.0
 images:
   tools:
     repository: ldesrosi/fabric-tools-with-ca
     tag: *fabric_version
     pullPolicy: IfNotPresent
-  orderers:
-    repository: hyperledger/fabric-orderer
+  peers:
+    repository: hyperledger/fabric-peer
     tag: *fabric_version
     pullPolicy: IfNotPresent 
+  rest:
+    repository: hyperledger/composer-rest-server
+    tag: *composer_version
+    pullPolicy: IfNotPresent
+  playground:
+    repository: hyperledger/composer-playground
+    tag: *composer_version
+    pullPolicy: IfNotPresent
+cloudstorage:
+  endpoint: s3.eu-geo.objectstorage.softlayer.net
+  iam:
+    apikey: sI7omGV2YXGC7MgqbX6Pje2zE42jmuY_HGHYbRY2sosh
+    endpoint: https://api.eu-gb.bluemix.net
 consortium:
   name: SampleConsortium
 ordererOrganizations:
@@ -18,12 +32,16 @@ ordererOrganizations:
     admin_principal: Role.MEMBER 
     ca:
       url: network-ca:7054
-      enrollment_id: ordererorg
-      enrollment_password: ordererpw
+      node: 
+        enrollment_id: orderernode
+        enrollment_password: ordererpw
+      admin:
+        enrollment_id: ordereradmin
+        enrollment_password: ordererpw
     type: solo
     replicaCount: 1
     service:
-      name: blockchain-orderer
+      name: network-orderer
       type: NodePort
       externalPort: 31010
       internalPort: 31010  
@@ -38,15 +56,20 @@ peerOrganizations:
   - name:  Org1
     mspid: Org1MSP
     domain: org1.example.com
+    admin_principal: Role.MEMBER 
     ca:
-      url: network-ca:7054
+      url: org1-ca:7054
+      admin:
+        enrollment_id: org1admin
     nodes:
       - shortName: peer1
         peerType: anchor
         ca:
-          url: network-ca:7054
+          url: org1-ca:7054
+          node: 
+            enrollment_id: peer1org1
         service:
-          name: blockchain-org1peer1
+          name: org1-peer1
           type: NodePort
           externalPort: 30110
           internalPort: 30110
@@ -55,15 +78,20 @@ peerOrganizations:
   - name: Org2
     mspid: Org2MSP
     domain: org2.example.com
+    admin_principal: Role.MEMBER 
     ca:
-      url: network-ca:7054
+      url: org2-ca:7054
+      admin:
+        enrollment_id: org2admin
     nodes:
       - shortName: peer1
         peerType: anchor
         ca:
-          url: network-ca:7054
+          url: org2-ca:7054
+          node: 
+            enrollment_id: peer1org2
         service:
-          name: blockchain-org2peer2
+          name: org2-peer1
           type: NodePort
           externalPort: 30210
           internalPort: 30210

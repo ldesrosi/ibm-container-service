@@ -1,30 +1,19 @@
 #!/bin/bash
 
-export FABRIC_CA_CLIENT_HOME=/ca/clients
+export FABRIC_CA_CLIENT_HOME=/data/clients
 
-echo "Trying to contact http://{{ .Values.ca.main.service.name }}:{{ .Values.ca.main.service.internalPort }}"
-while true ; do
-   STATUS="$(curl -s -w %{http_code} -o /dev/null --connect-timeout 2 http://{{ .Values.ca.main.service.name }}:{{ .Values.ca.main.service.internalPort }})"
-   if [ "${STATUS}" == "404" ]; then
-       echo "Service is up and running."
-       echo "Proceeding with identities registration."
-       break
-   else
-       sleep 2
-       echo "."
-   fi
-done
+/data/script/waitForService.sh http://{{ .Values.ca.service.name }}:{{ .Values.ca.service.internalPort }} 404
 
 if [ ! -f $FABRIC_CA_CLIENT_HOME/fabric-ca-client-config.yaml ]; then
     # Create clients cert directory and copy the original identity file there
-    mkdir /ca/clients
-    cp /ca-config/idlist.csv /ca/clients
+    mkdir /data/clients
+    cp /ca-config/idlist.csv /data/clients
 
     # Enroll the CA identity to allow client requests to work.
-    fabric-ca-client enroll -u "http://{{ .Values.ca.admin }}:{{ .Values.ca.password }}@{{ .Values.ca.main.service.name }}:{{ .Values.ca.main.service.internalPort }}" 
+    fabric-ca-client enroll -u "http://{{ .Values.ca.admin }}:{{ .Values.ca.password }}@{{ .Values.ca.service.name }}:{{ .Values.ca.service.internalPort }}" 
 else 
     # Merge the original identity file with the one from ca-config
-    cp /ca-config/idlist.csv /ca/clients
+    cp /ca-config/idlist.csv /data/clients
 fi
 
 cd $FABRIC_CA_CLIENT_HOME
@@ -40,5 +29,5 @@ while read name secret type affiliation attrs
    if [ "$name" != "Name" ]; then
       fabric-ca-client register --id.name $name --id.secret $secret --id.type $type --id.affiliation $affiliation --id.attrs $attrs
    fi
- done < /ca/clients/idlist.csv
+ done < /data/clients/idlist.csv
  IFS=$OLDIFS

@@ -18,9 +18,9 @@ images:
     tag: *composer_version
     pullPolicy: IfNotPresent
 ca:
-  name: org1-ca
-  domain: org1.example.com
-  admin: &admin_user org1ca
+  name: org2-ca
+  domain: org2.example.com
+  admin: &admin_user org2ca
   password: &admin_password adminpw  
   root:
     hostname: network-ca
@@ -32,10 +32,9 @@ ca:
       O: "IBM"
       OU: "Composer"  
   affiliations:
-    - name: org1
+    - name: org2
       departments:
       - department1
-      - department2
   registrar:
     roles: "peer,client,user,validator,auditor"
     delegatedRoles: "peer,client,user,validator,auditor"
@@ -44,20 +43,25 @@ ca:
     genCRL: true
     attributes: "*"
   identities:
-    - name: org1admin
+    - name: org2admin
       secret: adminpw
       type: client
-      affiliation: org1
+      affiliation: org2
       attributes: "\"hf.Registrar.Roles=client\""
-    - name: peer1org1
+    - name: peer1org2
       secret: adminpw
       type: peer
-      affiliation: org1
+      affiliation: org2
+      attributes: "\"hf.Registrar.Roles=peer\",hf.IntermediateCA=false,hf.Revoker=false"    
+    - name: peer2org2
+      secret: adminpw
+      type: peer
+      affiliation: org2
       attributes: "\"hf.Registrar.Roles=peer\",hf.IntermediateCA=false,hf.Revoker=false"
   replicaCount: 1
   service:
-    name: org1-ca
+    name: org2-ca
     type: NodePort
-    externalPort: 30001
+    externalPort: 30002
     internalPort: 7054  
   sub_cas:

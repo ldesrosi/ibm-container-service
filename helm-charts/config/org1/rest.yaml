@@ -1,0 +1,68 @@
+fabric_version: &fabric_version x86_64-1.1.0-alpha
+composer_version: &composer_version 0.16.0
+images:
+  tools:
+    repository: ldesrosi/fabric-tools-with-ca
+    tag: *fabric_version
+    pullPolicy: IfNotPresent
+  peers:
+    repository: hyperledger/fabric-peer
+    tag: *fabric_version
+    pullPolicy: IfNotPresent 
+  rest:
+    repository: hyperledger/composer-rest-server
+    tag: *composer_version
+    pullPolicy: IfNotPresent
+  playground:
+    repository: hyperledger/composer-playground
+    tag: *composer_version
+    pullPolicy: IfNotPresent
+ordererOrganizations:
+  - name: ordererorg
+    service:
+      name: network-orderer
+      type: NodePort
+      externalPort: 31010
+      internalPort: 31010  
+peerOrganizations:
+  - &targetOrg
+    name:  Org1
+    mspid: Org1MSP
+    ca:
+      url: org1-ca:7054
+    nodes:
+      - shortName: peer1
+        service:
+          name: org1-peer1
+          externalPort: 30110
+          internalPort: 30110
+          eventInternalPort: 30111
+          eventExternalPort: 30111
+  - name: Org2
+    nodes:
+      - shortName: peer1
+        service:
+          name: org2-peer1
+          type: NodePort
+          externalPort: 30210
+          internalPort: 30210
+          eventInternalPort: 30211
+          eventExternalPort: 30211
+rest:
+  replicaCount: 1
+  org: *targetOrg
+  channel: 
+  ca: 
+    url: org1-ca:7054
+    name: org1-ca
+    enrollment_id:
+    enrollment_password:
+  card:
+    name: admin@network
+    role: PeerAdmin
+    user:
+  service:
+    name: rest
+    type: Nodeport
+    internalPort: 3000
+    externalPort: 33000

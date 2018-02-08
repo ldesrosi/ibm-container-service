@@ -1,39 +1,41 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: ca-{{ .Release.Name | lower }}
+  name: {{ .Release.Name | lower }}
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        name: ca-{{ .Release.Name | lower }}
+        name: {{ .Release.Name | lower }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       containers:
       - name: ca
-        image: "{{ .Values.ca.image.repository}}:{{ .Values.ca.image.tag}}"
-        command: ["sh", "-c", "fabric-ca-server start -c /ca/cas/ca.yaml"]
+        image: "{{ .Values.images.ca.repository}}:{{ .Values.images.ca.tag}}"
+        imagePullPolicy: {{.Values.images.ca.pullPolicy}}
+        command: ["sh", "-c", "fabric-ca-server start"]
         env:
         - name: FABRIC_CA_HOME
-          value: /ca/cas
+          value: /data/cas
         volumeMounts:
-        - mountPath: /ca
-          name: ca
+        - mountPath: /data
+          name: data
         - mountPath: /ca-config
           name: ca-config
       initContainers:
       - name: init-ca
-        image: "{{ .Values.ca.image.repository}}:{{ .Values.ca.image.tag}}"
+        image: "{{ .Values.images.ca.repository}}:{{ .Values.images.ca.tag}}"
+        imagePullPolicy: {{.Values.images.ca.pullPolicy}}
         command: ["sh", "-c", "chmod +x /ca-config/setup.sh && /ca-config/setup.sh"]
         volumeMounts:
-        - mountPath: /ca
-          name: ca
+        - mountPath: /data
+          name: data
         - mountPath: /ca-config
           name: ca-config  
       volumes:
-      - name: ca
+      - name: data
         persistentVolumeClaim:
           claimName: ca-pvc-{{ .Release.Name | lower }}
       - name: ca-config

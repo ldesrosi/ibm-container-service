@@ -1,0 +1,97 @@
+fabric_version: &fabric_version x86_64-1.1.0-alpha
+composer_version: &composer_version 0.16.0
+images:
+  tools:
+    repository: ldesrosi/fabric-tools-with-ca
+    tag: *fabric_version
+    pullPolicy: IfNotPresent
+  peers:
+    repository: hyperledger/fabric-peer
+    tag: *fabric_version
+    pullPolicy: IfNotPresent 
+  rest:
+    repository: hyperledger/composer-rest-server
+    tag: *composer_version
+    pullPolicy: IfNotPresent
+  playground:
+    repository: hyperledger/composer-playground
+    tag: *composer_version
+    pullPolicy: IfNotPresent
+cloudstorage:
+  endpoint: s3.eu-geo.objectstorage.softlayer.net
+  iam:
+    apikey: sI7omGV2YXGC7MgqbX6Pje2zE42jmuY_HGHYbRY2sosh
+    endpoint: https://api.eu-gb.bluemix.net
+consortium:
+  name: SampleConsortium
+ordererOrganizations: 
+  - &targetOrderer
+    name: ordererorg
+    mspid: OrdererMSP
+    domain: example.com
+    ca:
+      url: network-ca:7054
+    service:
+      name: network-orderer
+      type: NodePort
+      externalPort: 31010
+      internalPort: 31010  
+peerOrganizations:
+  - name:  Org1
+    mspid: Org1MSP
+    domain: org1.example.com
+    ca:
+      url: org1-ca:7054
+    nodes:
+      - shortName: peer1
+        peerType: anchor
+        ca:
+          url: org1-ca:7054
+        service:
+          name: org1-peer1
+          type: NodePort
+          externalPort: 30110
+          internalPort: 30110
+          eventInternalPort: 30111
+          eventExternalPort: 30111
+  - &targetOrg
+    name: Org2
+    mspid: Org2MSP
+    domain: org2.example.com
+    ca:
+      url: org2-ca:7054
+      admin:
+        enrollment_id: org2admin
+        enrollment_password: adminpw
+    nodes:
+      - shortName: peer1
+        peerType: anchor
+        ca:
+          url: org2-ca:7054
+          node: 
+            enrollment_id: peer1org2
+            enrollment_password: adminpw
+        service:
+          name: org2-peer1
+          type: NodePort
+          externalPort: 30210
+          internalPort: 30210
+          eventInternalPort: 30211
+          eventExternalPort: 30211
+      - shortName: peer2
+        peerType: standard
+        ca:
+          url: org2-ca:7054
+          node: 
+            enrollment_id: peer2org2
+            enrollment_password: adminpw
+        service:
+          name: org2-peer2
+          type: NodePort
+          externalPort: 30220
+          internalPort: 30220
+          eventInternalPort: 30221
+          eventExternalPort: 30221
+target:
+  orderer: *targetOrderer
+  org: *targetOrg

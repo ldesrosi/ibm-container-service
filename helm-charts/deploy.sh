@@ -1,14 +1,11 @@
 #/bin/bash
 
-helm install --wait --timeout 300 --values=./overrides.yaml --name control  ibm-blockchain-control 
-helm install --wait --timeout 300 --values=./overrides.yaml --name ca       ibm-blockchain-ca
-helm install --wait --timeout 300 --values=./overrides.yaml --name orderer  ibm-blockchain-orderer
-helm install --wait --timeout 300 --values=./overrides.yaml --name peer     ibm-blockchain-peer
-helm install --wait --timeout 300 --values=./overrides.yaml --name composer ibm-blockchain-composer
-
-export CONTROL=$(kubectl get po -l name=blockchain-control  -o 'jsonpath={.items[0].metadata.name}')
-
+helm upgrade --install --values=./config/orderer/ca.yaml network-ca ibm-blockchain-ca
 sleep 60
-
-kubectl exec -ti ${CONTROL} -c cli -- /shared/script/quickSetup.sh
-kubectl exec -ti ${CONTROL} -c composer -- /shared/script/cardImport.sh /shared/org1-profile.json PeerAdmin ChannelAdmin org1.example.com
+helm upgrade --install --values=./config/org1/ca.yaml org1-ca ibm-blockchain-ca
+helm upgrade --install --values=./config/org2/ca.yaml org2-ca ibm-blockchain-ca
+sleep 60
+helm upgrade --install --values=./config/orderer/orderer.yaml network-orderer ibm-blockchain-orderer
+sleep 30
+helm upgrade --install --values=./config/org1/peer.yaml org1-peer ibm-blockchain-peer
+helm upgrade --install --values=./config/org2/peer.yaml org2-peer ibm-blockchain-peer

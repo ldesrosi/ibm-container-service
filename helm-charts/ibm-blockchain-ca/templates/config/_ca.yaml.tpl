@@ -60,7 +60,7 @@ tls:
   # Enable TLS (default: false)
   enabled: false
   # TLS for the server's listening port
-  certfile: /ca/cas/msp/tls/tls-cert.pem
+  certfile: /data/cas/msp/tls/tls-cert.pem
   keyfile:
   clientauth:
     type: noclientcert
@@ -80,12 +80,12 @@ ca:
   # Name of this CA
   name: {{ .name }}
   # Key file (default: ca-key.pem)
-  keyfile: /ca/cas/msp/keystore/key.pem
+  keyfile: /data/cas/msp/keystore/key.pem
   # Certificate file (default: ca-cert.pem)
-  certfile: /ca/cas/msp/signcerts/ca.{{ .domain }}-cert.pem
+  certfile: /data/cas/msp/signcerts/ca.{{ .domain }}-cert.pem
   # Chain file (default: chain-cert.pem)
   #chainfile: ca-chain.pem
-  chainfile: /ca/cas/msp/cacerts/ca.{{ .domain }}-chain.pem
+  chainfile: /data/cas/msp/cacerts/ca.{{ .domain }}-chain.pem
 
 #############################################################################
 #  The gencrl REST endpoint is used to generate a CRL that contains revoked
@@ -143,7 +143,7 @@ registry:
 #############################################################################
 db:
   type: sqlite3
-  datasource: /ca/fabric-ca-server.db
+  datasource: /data/fabric-ca-server.db
   tls:
       enabled: false
       certfiles:
@@ -263,8 +263,6 @@ csr:
       expiry: 131400h
       {{ if and .root false }}
       pathlength: 1
-      {{- else -}}
-      pathlength: 0
       {{- end }}
 #############################################################################
 # BCCSP (BlockChain Crypto Service Provider) section is used to select which
@@ -277,7 +275,7 @@ bccsp:
         security: 256
         filekeystore:
             # The directory used for the software file-based keystore
-            keystore: /ca/cas/msp/keystore
+            keystore: /data/cas/msp/keystore
 
 #############################################################################
 # The fabric-ca-server init and start commands support the following two
@@ -309,5 +307,50 @@ cacount:
 
 cafiles:
   {{- range $index, $org := .sub_cas }}
-  - /ca/cas/{{ .name | lower }}/ca.yaml
+  - /data/cas/{{ .name | lower }}/ca.yaml
   {{- end }}
+#############################################################################
+# Intermediate CA section
+#
+# The relationship between servers and CAs is as follows:
+#   1) A single server process may contain or function as one or more CAs.
+#      This is configured by the "Multi CA section" above.
+#   2) Each CA is either a root CA or an intermediate CA.
+#   3) Each intermediate CA has a parent CA which is either a root CA or another intermediate CA.
+#
+# This section pertains to configuration of #2 and #3.
+# If the "intermediate.parentserver.url" property is set,
+# then this is an intermediate CA with the specified parent
+# CA.
+#
+# parentserver section
+#    url - The URL of the parent server
+#    caname - Name of the CA to enroll within the server
+#
+# enrollment section used to enroll intermediate CA with parent CA
+#    profile - Name of the signing profile to use in issuing the certificate
+#    label - Label to use in HSM operations
+#
+# tls section for secure socket connection
+#   certfiles - PEM-encoded list of trusted root certificate files
+#   client:
+#     certfile - PEM-encoded certificate file for when client authentication
+#     is enabled on server
+#     keyfile - PEM-encoded key file for when client authentication
+#     is enabled on server
+#############################################################################
+intermediate:
+  parentserver:
+    url:
+    caname:
+
+  enrollment:
+    hosts:
+    profile:
+    label:
+
+  tls:
+    certfiles:
+    client:
+      certfile:
+      keyfile:

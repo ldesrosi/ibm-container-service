@@ -2,32 +2,50 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: blockchain-orderer
+  name: {{ .Release.Name | lower }}
 spec:
-  replicas: {{ if eq .Values.orderers.type "solo" }}1{{ else }}.Values.orderers.replicaCount{{ end }} 
+  replicas: {{ if eq .Values.target.orderer.type "solo" }}1{{ else }}.Values.target.orderer.replicaCount{{ end }} 
   template:
     metadata:
       labels:
-        name: orderer
+        name: {{ .Release.Name | lower }}
     spec:
       containers:
       - name: orderer
-        image: "{{ .Values.orderers.image.repository}}:{{ .Values.orderers.image.tag}}"
+        image: "{{ .Values.images.orderers.repository}}:{{ .Values.images.orderers.tag}}"
+        imagePullPolicy: {{.Values.images.orderers.pullPolicy}}
         command: ["sh", "-c", "orderer"]
         envFrom:
         - configMapRef:
-            name: blockchain-orderer
+            name: orderer-env-{{ .Release.Name | lower }}
         volumeMounts:
-        - mountPath: /shared
-          name: shared
+        - mountPath: /data
+          name: data
+        - mountPath: /orderer-config
+          name: orderer-config
+      - name: cli
+        image: "{{ .Values.images.tools.repository }}:{{ .Values.images.tools.tag }}"
+        imagePullPolicy: {{.Values.images.tools.pullPolicy}}
+        command: ["bash", "-c", "sleep 100000"]
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /orderer-config
+          name: orderer-config 
       initContainers:
       - name: init-orderer
-        image: busybox
-        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/bootstrapped ]; do echo Waiting for bootstrap; sleep 1; done"]
+        image: "{{ .Values.images.tools.repository }}:{{ .Values.images.tools.tag }}"
+        imagePullPolicy: {{.Values.images.tools.pullPolicy}}
+        command: ["sh", "-c", "chmod +x /orderer-config/setup.sh && /orderer-config/setup.sh"]
         volumeMounts:
-        - mountPath: /shared
-          name: shared         
+        - mountPath: /data
+          name: data
+        - mountPath: /orderer-config
+          name: orderer-config 
       volumes:
-      - name: shared
+      - name: data
         persistentVolumeClaim:
-          claimName: shared-pvc
+          claimName: orderer-pvc-{{ .Release.Name | lower }}
+      - name: orderer-config
+        configMap:
+          name: orderer-config-{{ .Release.Name | lower }}

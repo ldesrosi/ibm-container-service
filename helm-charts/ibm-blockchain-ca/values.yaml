@@ -1,90 +1,64 @@
-fabric_version: &fabric_version 1.0.4
-tools:
-  image:
-    repository: ibmblockchain/fabric-tools
+fabric_version: &fabric_version x86_64-1.1.0-alpha
+images:
+  tools:
+    repository: ldesrosi/fabric-tools-with-ca
+    tag: *fabric_version
+    pullPolicy: IfNotPresent
+  ca:
+    repository: hyperledger/fabric-ca
     tag: *fabric_version
     pullPolicy: IfNotPresent
 ca:
-  image:
-    repository: ibmblockchain/fabric-ca
-    tag: *fabric_version
-    pullPolicy: IfNotPresent
+  name: network-ca
+  domain: example.com
   admin: &admin_user admin
   password: &admin_password adminpw  
-  main:
-    name: CA
-    domain: example.com
-    admin: *admin_user
-    password: *admin_password
-    DNs:
-      - C: UK
-        ST: "Hampshire"
-        L: "Hursley"
-        O: "IBM"
-        OU: "Composer"  
-    affiliations:
-      - name: org1
-        departments:
-        - department1
-        - department2
-    registrar:
-      roles: "peer,orderer,client,user,validator,auditor,ca"
-      delegatedRoles: "peer,client,user,validator,auditor"
-      intermediateCA: true
-      revoker: true
-      genCRL: true
-      attributes: "*"
-    replicaCount: 1
-    service:
-      name: blockchain-ca
-      type: NodePort
-      externalPort: 30000
-      internalPort: 7054  
-    sub_cas:
-      - name: CA1
-        domain: org1.example.com
-        admin: *admin_user
-        password: *admin_password
-        DNs:
-          - C: UK
-            ST: "Hampshire"
-            L: "Hursley"
-            O: "IBM"
-            OU: "Composer" 
-        affiliations:
-          - name: org1
-            departments:
-            - department1
-            - department2
-        registrar:
-          roles: "peer,client,user,validator,auditor"
-          delegatedRoles: "client,user,validator,auditor"
-          intermediateCA: true
-          revoker: true
-          genCRL: true
-          attributes: "*"
-      - name: CA2
-        domain: org2.example.com
-        admin: *admin_user
-        password: *admin_password  
-        DNs:
-          - C: UK
-            ST: "Hampshire"
-            L: "Hursley"
-            O: "IBM"
-            OU: "Composer" 
-        affiliations:
-          - name: org2
-            departments:
-            - department1
-            - department2
-        registrar:
-          roles: "peer,client,user,validator,auditor"
-          delegatedRoles: "client,user,validator,auditor"
-          intermediateCA: true
-          revoker: true
-          genCRL: true
-          attributes: "*"
-
+  DNs:
+    - C: UK
+      ST: "Hampshire"
+      L: "Hursley"
+      O: "IBM"
+      OU: "Composer"  
+  affiliations:
+    - name: ordererorg
+      departments:
+      - department1
+    - name: org1
+      departments:
+      - department1
+    - name: org2
+      departments:
+      - department1
+      - department2
+  registrar:
+    roles: "orderer,peer,client,user,validator,auditor,ca"
+    delegatedRoles: "orderer,peer,client,user,validator,auditor,ca"
+    intermediateCA: true
+    revoker: true
+    genCRL: true
+    attributes: "*"
+  identities:
+    - name: ordererorg
+      secret: ordererpw
+      type: orderer
+      affiliation: ordererorg
+      attributes: "\"hf.Registrar.Roles=orderer\""
+    - name: org1ca
+      secret: adminpw
+      type: ca
+      affiliation: org1
+      attributes: "\"hf.Registrar.Roles=peer,client,user,validator,auditor\",hf.IntermediateCA=true,hf.Revoker=true"
+    - name: org2ca
+      secret: adminpw
+      type: ca
+      affiliation: org2
+      attributes: "\"hf.Registrar.Roles=peer,client,user,validator,auditor\",hf.IntermediateCA=true,hf.Revoker=true"
+  replicaCount: 1
+  service:
+    name: network-ca
+    type: NodePort
+    externalPort: 30000
+    internalPort: 7054  
+  sub_cas:
 
 

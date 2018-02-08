@@ -8,14 +8,16 @@ data:
 {{ include (print .Template.BasePath "/config/_setup.sh.tpl") . | indent 4 }}
   processId.sh: |
 {{ include (print .Template.BasePath "/config/_processId.sh.tpl") . | indent 4 }}
+  waitForService.sh: |
+{{ include (print .Template.BasePath "/config/_waitForService.sh.tpl") . | indent 4 }}
   ca.yaml: |
-{{ include (print .Template.BasePath "/config/_ca.yaml.tpl") .Values.ca.main | indent 4 }}
-{{- range .Values.ca.main.sub_cas }}
+{{ include (print .Template.BasePath "/config/_ca.yaml.tpl") .Values.ca | indent 4 }}
+{{- range .Values.ca.sub_cas }}
   {{ .name | lower }}-ca.yaml: |
 {{ include (print $.Template.BasePath "/config/_ca.yaml.tpl") . | indent 4 }}
 {{- end }}
   idlist.csv: |
     Name; Secret; Type; Affiliation; Attrs
-{{- range .Values.ca.main.identities }}
+{{- range .Values.ca.identities }}
     {{ .name }};{{ .secret }};{{ .type }};{{ .affiliation }};{{ .attributes }}
 {{- end }}

@@ -2,6 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: id-mgmt-job-{{ .Release.Name | lower }}
+
 spec:
   template:
     metadata:
@@ -9,16 +10,17 @@ spec:
     spec:
       containers:
       - name: id-mgmt-job-{{ .Release.Name | lower }}
-        image: "{{ .Values.tools.image.repository }}:{{ .Values.tools.image.tag }}"
+        image: "{{ .Values.images.tools.repository }}:{{ .Values.images.tools.tag }}"
+        imagePullPolicy: Always
         command: ["sh", "-c", "chmod +x /ca-config/processId.sh && /ca-config/processId.sh"]
         volumeMounts:
-          - mountPath: /ca
-            name: ca
+          - mountPath: /data
+            name: data
           - mountPath: /ca-config
             name: ca-config
       restartPolicy: Never
       volumes:
-        - name: ca
+        - name: data
           persistentVolumeClaim:
             claimName: ca-pvc-{{ .Release.Name | lower }}
         - name: ca-config
