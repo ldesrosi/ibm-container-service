@@ -14,15 +14,10 @@ mkdir /data/script/
 cp /orderer-config/*.sh /data/script/
 chmod +x /data/script/*.sh
 
-#Move configtx configuration files
-cp /orderer-config/configtx.yaml /data/configtx.yaml
-
+/data/script/shareFile.sh {{ $.Values.consortium.name | lower }} config/configtx.orderer.yaml /orderer-config/configtx.orderer.yaml
 /data/script/setupMSP.sh
 
-# Setup genesis block
-echo "Starting configtxgen" 
-cd /data
-configtxgen -profile $PROFILE -outputBlock orderer.block 
+/data/script/waitForFile.sh {{ $.Values.consortium.name | lower }} block/orderer.block /data/orderer.block 
 
 find /data -type d | xargs chmod a+rx
 find /data -type f | xargs chmod a+r

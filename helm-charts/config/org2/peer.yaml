@@ -27,15 +27,19 @@ consortium:
 ordererOrganizations: 
   - &targetOrderer
     name: ordererorg
-    mspid: OrdererMSP
     domain: example.com
+    mspid: OrdererMSP
     ca:
       url: network-ca:7054
-    service:
-      name: network-orderer
-      type: NodePort
-      externalPort: 31010
-      internalPort: 31010  
+    nodes: 
+      - name: orderer1
+        ca:
+          url: network-ca:7054
+        service:
+          name: network-orderer
+          type: NodePort
+          externalPort: 31010
+          internalPort: 31010  
 peerOrganizations:
   - name:  Org1
     mspid: Org1MSP

@@ -1,7 +1,8 @@
+{{- range $i, $node := .Values.target.orderer.nodes }} 
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: orderer-env-{{ .Release.Name | lower }}
+  name: orderer-env-{{ .name }}-{{ $.Release.Name | lower }}
   namespace: default
 data:
   ORDERER_CFG_PATH: /data/
@@ -10,18 +11,19 @@ data:
   ORDERER_GENERAL_BATCHTIMEOUT: 1s
   ORDERER_GENERAL_BATCHSIZE_MAXMESSAGECOUNT: "10"
   ORDERER_GENERAL_MAXWINDOWSIZE: "1000"
-  ORDERER_GENERAL_ORDERERTYPE: {{ .Values.target.orderer.type }}
+  ORDERER_GENERAL_ORDERERTYPE: {{ $.Values.target.orderer.type }}
   ORDERER_GENERAL_LISTENADDRESS: 0.0.0.0
-  ORDERER_GENERAL_LISTENPORT: {{ .Values.target.orderer.service.internalPort | quote }}
+  ORDERER_GENERAL_LISTENPORT: {{ .service.internalPort | quote }}
   ORDERER_GENERAL_LOGLEVEL: debug
-  ORDERER_GENERAL_LOCALMSPDIR: /data/ordererOrganizations/{{ .Values.target.orderer.domain }}/orderers/{{ .Values.target.orderer.name }}.{{ .Values.target.orderer.domain }}/msp
-  ORDERER_GENERAL_LOCALMSPID: {{ .Values.target.orderer.mspid }}
+  ORDERER_GENERAL_LOCALMSPDIR: /data/ordererOrganizations/{{ $.Values.target.orderer.domain }}/orderers/{{ .name }}.{{ $.Values.target.orderer.domain }}/msp
+  ORDERER_GENERAL_LOCALMSPID: {{ $.Values.target.orderer.mspid }}
   ORDERER_GENERAL_GENESISMETHOD: file
   ORDERER_GENERAL_GENESISFILE: /data/orderer.block
   ORDERER_GENERAL_GENESISPROFILE: initial
   ORDERER_GENERAL_TLS_ENABLED: "false"
   GODEBUG: "netdns=go"
 ---
+{{ end }}
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -32,8 +34,8 @@ data:
 {{ include (print .Template.BasePath "/config/_setup.sh.tpl") . | indent 4 }}
   setupMSP.sh: |
 {{ include (print .Template.BasePath "/config/_setupMSP.sh.tpl") . | indent 4 }}
-  configtx.yaml: |
-{{ include (print .Template.BasePath "/config/_configtx.yaml.tpl") . | indent 4 }}
+  configtx.orderer.yaml: |
+{{ include (print .Template.BasePath "/config/_configtx.orderer.yaml.tpl") . | indent 4 }}
   shareFile.sh: |
 {{ include (print .Template.BasePath "/config/_shareFile.sh.tpl") . | indent 4 }}
   waitForFile.sh: |

@@ -22,8 +22,9 @@ do
         curl "https://{{ .Values.cloudstorage.endpoint }}/${CONSORTIUM}/${FILE_NAME}" \
         -H "Authorization: Bearer ${TOKEN}" -o ${FILE_LOCATION}
 
-        if [ -s ${FILE_LOCATION} ] then
-          break
+        if [ -s ${FILE_LOCATION} ]; 
+        then
+          break;
         fi
   else
         sleep 5

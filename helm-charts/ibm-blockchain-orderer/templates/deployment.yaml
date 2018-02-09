@@ -1,51 +1,46 @@
+{{- range $i, $node := .Values.target.orderer.nodes }} 
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name | lower }}
+  name: {{ .name }}-{{ $.Release.Name | lower }}
 spec:
-  replicas: {{ if eq .Values.target.orderer.type "solo" }}1{{ else }}.Values.target.orderer.replicaCount{{ end }} 
+  replicas: 1 
   template:
     metadata:
       labels:
-        name: {{ .Release.Name | lower }}
+        name: {{ .name }}-{{ $.Release.Name | lower }}
     spec:
       containers:
-      - name: orderer
-        image: "{{ .Values.images.orderers.repository}}:{{ .Values.images.orderers.tag}}"
-        imagePullPolicy: {{.Values.images.orderers.pullPolicy}}
+      - name: {{ .name }}
+        image: "{{ $.Values.images.orderers.repository}}:{{ $.Values.images.orderers.tag}}"
+        imagePullPolicy: {{$.Values.images.orderers.pullPolicy}}
         command: ["sh", "-c", "orderer"]
         envFrom:
         - configMapRef:
-            name: orderer-env-{{ .Release.Name | lower }}
+            name: orderer-env-{{ .name }}-{{ $.Release.Name | lower }}
         volumeMounts:
         - mountPath: /data
           name: data
         - mountPath: /orderer-config
           name: orderer-config
-      - name: cli
-        image: "{{ .Values.images.tools.repository }}:{{ .Values.images.tools.tag }}"
-        imagePullPolicy: {{.Values.images.tools.pullPolicy}}
-        command: ["bash", "-c", "sleep 100000"]
-        volumeMounts:
-        - mountPath: /data
-          name: data
-        - mountPath: /orderer-config
-          name: orderer-config 
+{{- if eq $i 0 }}
       initContainers:
       - name: init-orderer
-        image: "{{ .Values.images.tools.repository }}:{{ .Values.images.tools.tag }}"
-        imagePullPolicy: {{.Values.images.tools.pullPolicy}}
+        image: "{{ $.Values.images.tools.repository }}:{{ $.Values.images.tools.tag }}"
+        imagePullPolicy: {{ $.Values.images.tools.pullPolicy }}
         command: ["sh", "-c", "chmod +x /orderer-config/setup.sh && /orderer-config/setup.sh"]
         volumeMounts:
         - mountPath: /data
           name: data
         - mountPath: /orderer-config
           name: orderer-config 
+{{ end }}
       volumes:
       - name: data
         persistentVolumeClaim:
-          claimName: orderer-pvc-{{ .Release.Name | lower }}
+          claimName: orderer-pvc-{{ $.Release.Name | lower }}
       - name: orderer-config
         configMap:
-          name: orderer-config-{{ .Release.Name | lower }}
+          name: orderer-config-{{ $.Release.Name | lower }}
+{{ end }}

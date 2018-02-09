@@ -26,6 +26,15 @@ spec:
           name: peer-config 
         - mountPath: /host/var/run/docker.sock
           name: dockersocket
+      - name: cli-{{ $i }}
+        image: "{{ $.Values.images.tools.repository }}:{{ $.Values.images.tools.tag }}"
+        imagePullPolicy: {{$.Values.images.tools.pullPolicy}}
+        command: ["bash", "-c", "sleep 100000"]
+        volumeMounts:
+        - mountPath: /data
+          name: data
+        - mountPath: /peer-config
+          name: peer-config 
 {{- if eq $i 0 }}
       initContainers:
       - name: init-peer

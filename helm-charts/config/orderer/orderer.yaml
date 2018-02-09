@@ -32,19 +32,23 @@ ordererOrganizations:
     admin_principal: Role.MEMBER 
     ca:
       url: network-ca:7054
-      node: 
-        enrollment_id: orderernode
-        enrollment_password: ordererpw
       admin:
         enrollment_id: ordereradmin
         enrollment_password: ordererpw
     type: solo
     replicaCount: 1
-    service:
-      name: network-orderer
-      type: NodePort
-      externalPort: 31010
-      internalPort: 31010  
+    nodes: 
+      - name: orderer1
+        ca:
+          url: network-ca:7054
+          node: 
+            enrollment_id: orderernode
+            enrollment_password: ordererpw
+        service:
+          name: network-orderer
+          type: NodePort
+          externalPort: 31010
+          internalPort: 31010  
     kafka:
       brokers:
         - service:
@@ -59,15 +63,11 @@ peerOrganizations:
     admin_principal: Role.MEMBER 
     ca:
       url: org1-ca:7054
-      admin:
-        enrollment_id: org1admin
     nodes:
       - shortName: peer1
         peerType: anchor
         ca:
           url: org1-ca:7054
-          node: 
-            enrollment_id: peer1org1
         service:
           name: org1-peer1
           type: NodePort
@@ -81,15 +81,11 @@ peerOrganizations:
     admin_principal: Role.MEMBER 
     ca:
       url: org2-ca:7054
-      admin:
-        enrollment_id: org2admin
     nodes:
       - shortName: peer1
         peerType: anchor
         ca:
           url: org2-ca:7054
-          node: 
-            enrollment_id: peer1org2
         service:
           name: org2-peer1
           type: NodePort

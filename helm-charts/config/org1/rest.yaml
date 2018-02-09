@@ -17,13 +17,22 @@ images:
     repository: hyperledger/composer-playground
     tag: *composer_version
     pullPolicy: IfNotPresent
-ordererOrganizations:
-  - name: ordererorg
-    service:
-      name: network-orderer
-      type: NodePort
-      externalPort: 31010
-      internalPort: 31010  
+ordererOrganizations: 
+  - &targetOrderer
+    name: ordererorg
+    domain: example.com
+    mspid: OrdererMSP
+    ca:
+      url: network-ca:7054
+    nodes: 
+      - name: orderer1
+        ca:
+          url: network-ca:7054
+        service:
+          name: network-orderer
+          type: NodePort
+          externalPort: 31010
+          internalPort: 31010
 peerOrganizations:
   - &targetOrg
     name:  Org1
