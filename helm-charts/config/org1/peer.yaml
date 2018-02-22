@@ -17,13 +17,16 @@ images:
     repository: hyperledger/composer-playground
     tag: *composer_version
     pullPolicy: IfNotPresent
-cloudstorage:
-  endpoint: s3.eu-geo.objectstorage.softlayer.net
-  iam:
-    apikey: sI7omGV2YXGC7MgqbX6Pje2zE42jmuY_HGHYbRY2sosh
-    endpoint: https://api.eu-gb.bluemix.net
+redis:
+  host: network-store-redis
+  password: secretpassword
 consortium:
   name: SampleConsortium
+  channels:
+    - name: samplechannel
+      orgs:
+        - Org1
+        - Org2
 ordererOrganizations: 
   - &targetOrderer
     name: ordererorg
@@ -38,8 +41,8 @@ ordererOrganizations:
         service:
           name: network-orderer
           type: NodePort
+          internalPort: 7050
           externalPort: 31010
-          internalPort: 31010  
 peerOrganizations:
   - &targetOrg
     name:  Org1
@@ -61,9 +64,9 @@ peerOrganizations:
         service:
           name: org1-peer1
           type: NodePort
+          internalPort: 7051
           externalPort: 30110
-          internalPort: 30110
-          eventInternalPort: 30111
+          eventInternalPort: 7053
           eventExternalPort: 30111
   - name: Org2
     mspid: Org2MSP
@@ -78,21 +81,10 @@ peerOrganizations:
         service:
           name: org2-peer1
           type: NodePort
+          internalPort: 7051
           externalPort: 30210
-          internalPort: 30210
-          eventInternalPort: 30211
-          eventExternalPort: 
-      - shortName: peer2
-        peerType: anchor
-        ca:
-          url: org2-ca:7054
-        service:
-          name: org2-peer2
-          type: NodePort
-          externalPort: 30220
-          internalPort: 30220
-          eventInternalPort: 30221
-          eventExternalPort: 30221
+          eventInternalPort: 7053
+          eventExternalPort: 30211
 target:
   orderer: *targetOrderer
   org: *targetOrg

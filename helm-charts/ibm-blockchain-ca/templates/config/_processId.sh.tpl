@@ -2,7 +2,7 @@
 
 export FABRIC_CA_CLIENT_HOME=/data/clients
 
-/data/script/waitForService.sh http://{{ .Values.ca.service.name }}:{{ .Values.ca.service.internalPort }} 404
+/data/script/waitForService.sh http {{ .Values.ca.service.name }}:{{ .Values.ca.service.internalPort }} 404
 
 if [ ! -f $FABRIC_CA_CLIENT_HOME/fabric-ca-client-config.yaml ]; then
     # Create clients cert directory and copy the original identity file there

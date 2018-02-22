@@ -26,6 +26,17 @@ Profiles:
                 {{- range .Values.peerOrganizations }}    
                     - *{{ .name }}
                 {{- end }}      
+    
+    {{- range .Values.consortium.channels }}
+    {{ .name }}Channel:
+        Consortium: {{ $.Values.consortium.name }}
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                {{- range .orgs }}
+                - *{{ . }}
+                {{- end }}
+    {{- end }}
 
 ################################################################################
 #
@@ -81,7 +92,7 @@ Organizations:
             {{- range .nodes }}
             {{ if eq .peerType "anchor" }}
             - Host: {{ .service.name }}
-              Port: {{ .service.externalPort }}
+              Port: {{ .service.internalPort }}
             {{- end }}
             {{- end }}
     {{- end }}

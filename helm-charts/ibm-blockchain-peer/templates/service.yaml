@@ -9,8 +9,8 @@ metadata:
 spec:
   type: {{ .service.type }}
   ports:
-    - port: {{ .service.externalPort }}
-      nodePort: {{ .service.internalPort }}
+    - port: {{ .service.internalPort }}
+      nodePort: {{ .service.externalPort }}
       protocol: TCP
       name: grpc
     - port: {{ .service.eventInternalPort }}

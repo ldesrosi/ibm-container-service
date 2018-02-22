@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mgmt-job-{{ .Release.Name | lower }}
+spec:
+  template:
+    metadata:
+      name: mgmt-job-{{ .Release.Name | lower }}
+    spec:
+      containers:
+      - name: imgmt-job-{{ .Release.Name | lower }}
+        image: "{{ .Values.images.tools.repository }}:{{ .Values.images.tools.tag }}"
+        imagePullPolicy: Always
+        command: ["sh", "-c", "/data/script/processCommands.sh"]
+        envFrom:
+        - configMapRef:
+            name: {{ ( index .Values.target.org.nodes 0 ).service.name }}  
+        volumeMounts:
+          - mountPath: /data
+            name: data
+          - mountPath: /peer-config
+            name: peer-config
+      restartPolicy: Never
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: peer-pvc-{{ .Release.Name | lower }}
+        - name: peer-config
+          configMap:
+            name: peer-config-{{ .Release.Name | lower }}

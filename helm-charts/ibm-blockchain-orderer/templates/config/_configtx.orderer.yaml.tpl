@@ -14,7 +14,7 @@ Orderer: &OrdererDefaults
 
     Addresses:
        {{- range .Values.target.orderer.nodes }}
-        - {{ .service.name }}:{{ .service.externalPort }}
+        - {{ .service.name }}:{{ .service.internalPort }}
        {{ end }}
 
     # Batch Timeout: The amount of time to wait before creating a batch
@@ -40,7 +40,7 @@ Orderer: &OrdererDefaults
         # NOTE: Use IP:port notation
         Brokers:
             {{- range .Values.target.orderer.kafka.brokers }}
-            - {{ .service.name }}:{{ .service.externalPort }}
+            - {{ .service.name }}:{{ .service.internalPort }}
             {{- end }}
 
     # Organizations is the list of orgs which are defined as participants on

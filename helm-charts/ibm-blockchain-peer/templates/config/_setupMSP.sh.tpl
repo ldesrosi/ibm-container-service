@@ -13,7 +13,7 @@ mkdir -p /data/ordererOrganizations/{{ $domain }}/msp
 mkdir -p /data/ordererOrganizations/{{ $domain }}/users
 
 # Wait for Orderer CA to be up and then retrive the CA Root and Intermediary CAs
-/data/script/waitForService.sh {{ .ca.url }} 404
+/data/script/waitForService.sh http {{ .ca.url }} 404
 fabric-ca-client getcacert -u "http://{{ .ca.url }}" -M /data/ordererOrganizations/{{ $domain }}/msp
 
 # Preparing orderer's admin msp
@@ -67,7 +67,7 @@ mkdir -p /data/peerOrganizations/{{ $domain }}/users
 mkdir -p /data/peerOrganizations/{{ $domain }}/peers
 
 # Retrieve CA Certs for the organization
-/data/script/waitForService.sh {{ .ca.url }} 404
+/data/script/waitForService.sh http {{ .ca.url }} 404
 fabric-ca-client getcacert -u "http://{{ .ca.url }}" -M /data/peerOrganizations/{{ $domain }}/msp
 
 # Create organization's Admin MSP

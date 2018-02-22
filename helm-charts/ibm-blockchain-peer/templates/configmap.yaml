@@ -6,32 +6,21 @@ metadata:
   name: {{ .service.name }}
   namespace: default
 data:
-  CORE_PEER_ADDRESSAUTODETECT: "true"
-  CORE_PEER_NETWORKID: nid1
-  CORE_PEER_ADDRESS: "{{ .service.name }}:{{ .service.externalPort }}"
-  CORE_PEER_LISTENADDRESS: 0.0.0.0:{{ .service.internalPort }}
-  CORE_PEER_EVENTS_ADDRESS: 0.0.0.0:{{ .service.eventInternalPort }}
-  CORE_PEER_GOSSIP_BOOTSTRAP: "{{ .service.name }}:{{ .service.externalPort }}"
-  CORE_PEER_GOSSIP_ORGLEADER: "true"
-  CORE_PEER_GOSSIP_SKIPHANDSHAKE: "true"
-  CORE_PEER_COMMITTER_ENABLED: "true"
+  CORE_VM_ENDPOINT: "unix:///host/var/run/docker.sock"
+  CORE_LOGGING_LEVEL: "debug"
+  CORE_PEER_GOSSIP_USELEADERELECTION: "true"
+  CORE_PEER_GOSSIP_ORGLEADER: "false"
   CORE_PEER_PROFILE_ENABLED: "true"
-  CORE_VM_ENDPOINT: unix:///host/var/run/docker.sock
-  CORE_PEER_LOCALMSPID: {{ $.Values.target.org.mspid }}
-  CORE_PEER_MSPCONFIGPATH: /data/peerOrganizations/{{ $.Values.target.org.domain }}/peers/{{ .shortName }}.{{ $.Values.target.org.domain }}/msp/
-  CORE_LOGGING_LEVEL: debug
-  CORE_LOGGING_PEER: debug
-  CORE_LOGGING_CAUTHDSL: debug
-  CORE_LOGGING_GOSSIP: debug
-  CORE_LOGGING_LEDGER: debug
-  CORE_LOGGING_MSP: info
-  CORE_LOGGING_POLICIES: debug
-  CORE_LOGGING_GRPC: debug
+  CORE_PEER_ADDRESSAUTODETECT: "true"
+  CORE_PEER_LOCALMSPID: "{{ $.Values.target.org.mspid }}"
+  CORE_PEER_MSPCONFIGPATH: "/data/peerOrganizations/{{ $.Values.target.org.domain }}/peers/{{ .shortName }}.{{ $.Values.target.org.domain }}/msp/"
+  CORE_PEER_ID: "{{ .shortName }}.{{ $.Values.target.org.domain }}"
+  CORE_PEER_GOSSIP_EXTERNALENDPOINT: "{{ .service.name }}:{{ .service.internalPort }}"
+  CORE_PEER_ADDRESS: "{{ .service.name }}:{{ .service.internalPort }}"
   CORE_PEER_TLS_ENABLED: "false"
-  CORE_LEDGER_STATE_STATEDATABASE: goleveldb
-  FABRIC_CFG_PATH: /etc/hyperledger/fabric/
-  ORDERER_URL: "{{ $.Values.target.orderer.service.name }}:{{ $.Values.target.orderer.service.externalPort }}"
-  GODEBUG: "netdns=go"
+  CORE_LEDGER_STATE_STATEDATABASE: "goleveldb"
+  FABRIC_CFG_PATH: "/etc/hyperledger/fabric/"
+  ORDERER_URL: "{{ $.Values.target.orderer.service.name }}:{{ $.Values.target.orderer.service.internalPort }}"
 {{- end }}
 ---
 kind: ConfigMap
@@ -48,7 +37,15 @@ data:
 {{ include (print .Template.BasePath "/config/_configtx.yaml.tpl") . | indent 4 }}
   shareFile.sh: |
 {{ include (print .Template.BasePath "/config/_shareFile.sh.tpl") . | indent 4 }}
+  checkForFile.sh: |
+{{ include (print .Template.BasePath "/config/_checkForFile.sh.tpl") . | indent 4 }}
   waitForFile.sh: |
 {{ include (print .Template.BasePath "/config/_waitForFile.sh.tpl") . | indent 4 }}
   waitForService.sh: |
 {{ include (print .Template.BasePath "/config/_waitForService.sh.tpl") . | indent 4 }}
+  createChannel.sh: |
+{{ include (print .Template.BasePath "/config/_createChannel.sh.tpl") . | indent 4 }}
+  joinChannel.sh: |
+{{ include (print .Template.BasePath "/config/_joinChannel.sh.tpl") . | indent 4 }}
+  processCommands.sh: |
+{{ include (print .Template.BasePath "/config/_processCommands.sh.tpl") . | indent 4 }}

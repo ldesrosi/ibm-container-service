@@ -10,6 +10,7 @@ CONSORTIUM=$1
 FILE_NAME=$2
 FILE_LOCATION=$3
 
+{{ if .Values.cloudstorage }}
 bx login --apikey {{ .Values.cloudstorage.iam.apikey }} -a {{ .Values.cloudstorage.iam.endpoint }}
 TOKEN=$(bx iam oauth-tokens | grep "IAM token:" | cut -d " " -f5)
 
@@ -30,6 +31,18 @@ do
         sleep 5
   fi
 done
-
+{{ else }}
+while true
+do
+  RESULT=$(redis-cli -h {{ .Values.redis.host }} -a {{ .Values.redis.password }} --raw exists ${CONSORTIUM}/${FILE_NAME}) 
+  echo "Result of exists is ${RESULT}"
+  if [[ ${RESULT} = 1 ]]; then
+    redis-cli -h {{ .Values.redis.host }} -a {{ .Values.redis.password }} get ${CONSORTIUM}/${FILE_NAME} | head -c -1 > ${FILE_LOCATION}
+    break;
+  else 
+    sleep 5
+  fi        
+done
+{{ end }}
 
 

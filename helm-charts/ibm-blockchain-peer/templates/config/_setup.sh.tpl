@@ -19,10 +19,11 @@ find /data -type d | xargs chmod a+rx
 find /data -type f | xargs chmod a+r
 
 #Move configtx configuration files
-/data/script/waitForFile.sh {{ $.Values.consortium.name | lower }} config/configtx.orderer.yaml /data/configtx.orderer.yaml
+/data/script/waitForFile.sh {{ .Values.consortium.name | lower }} config/configtx.orderer.yaml /data/configtx.orderer.yaml
 cat /peer-config/configtx.yaml /data/configtx.orderer.yaml > /data/configtx.yaml
+rm /data/configtx.orderer.yaml
 
-{{ if $.Values.generateGenesisBlock }}
+{{ if .Values.generateGenesisBlock }}
 # Setup genesis block
 echo "Starting configtxgen" 
 cd /data
