@@ -8,6 +8,8 @@ metadata:
 data:
   CORE_VM_ENDPOINT: "unix:///host/var/run/docker.sock"
   CORE_LOGGING_LEVEL: "debug"
+  CORE_LOGGING_GOSSIP: "debug"
+  CORE_LOGGING_MSP: "debug"
   CORE_PEER_GOSSIP_USELEADERELECTION: "true"
   CORE_PEER_GOSSIP_ORGLEADER: "false"
   CORE_PEER_PROFILE_ENABLED: "true"
@@ -47,5 +49,11 @@ data:
 {{ include (print .Template.BasePath "/config/_createChannel.sh.tpl") . | indent 4 }}
   joinChannel.sh: |
 {{ include (print .Template.BasePath "/config/_joinChannel.sh.tpl") . | indent 4 }}
+  deployComposerRuntime.sh: |
+{{ include (print .Template.BasePath "/config/_deployComposerRuntime.sh.tpl") . | indent 4 }}
+  deployBNA.sh: |
+{{ include (print .Template.BasePath "/config/_deployBNA.sh.tpl") . | indent 4 }}
   processCommands.sh: |
-{{ include (print .Template.BasePath "/config/_processCommands.sh.tpl") . | indent 4 }}
+{{ include (print .Template.BasePath "/config/_processCommands.sh.tpl") . | indent 4 }} 
+  {{ .Values.target.org.name }}-ConnectionProfile.json: |
+{{ include (print .Template.BasePath "/config/_composerProfile.json.tpl") . | indent 4 }}

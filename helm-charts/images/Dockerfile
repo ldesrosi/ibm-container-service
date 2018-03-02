@@ -1,4 +1,6 @@
-FROM hyperledger/fabric-tools:x86_64-1.1.0-alpha
+FROM hyperledger/fabric-tools:x86_64-1.1.0-rc1
+
+RUN npm config set user 0 && npm config set unsafe-perm true && npm install -g composer-cli
 
 COPY ./src/github.com/hyperledger/fabric-ca/bin/fabric-ca-client /usr/local/bin/fabric-ca-client
 RUN chmod +x /usr/local/bin/fabric-ca-client

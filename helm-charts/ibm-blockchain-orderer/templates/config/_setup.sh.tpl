@@ -7,11 +7,13 @@ export FABRIC_CA_CLIENT_HOME=/data
 {{ if .Release.IsInstall }}
 # We first ensure that the volume is clean from previous installs
 rm -rf /data/*
-mkdir /data/ledger
+{{ end }}
+
+mkdir -p /data/ledger
 
 #Setup scripts in the shared folder
-mkdir /data/script/
-cp /orderer-config/*.sh /data/script/
+mkdir -p /data/script/
+cp -f /orderer-config/*.sh /data/script/
 chmod +x /data/script/*.sh
 
 /data/script/shareFile.sh {{ $.Values.consortium.name | lower }} config/configtx.orderer.yaml /orderer-config/configtx.orderer.yaml
@@ -22,5 +24,5 @@ chmod +x /data/script/*.sh
 find /data -type d | xargs chmod a+rx
 find /data -type f | xargs chmod a+r
 
-{{ end }}
+
 

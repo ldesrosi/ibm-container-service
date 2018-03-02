@@ -10,6 +10,8 @@ CONSORTIUM=$1
 FILE_NAME=$2
 FILE_LOCATION=$3
 
+echo "Waiting for file ${FILE_NAME} for Consortium ${CONSORTIUM}"
+
 {{ if .Values.cloudstorage }}
 bx login --apikey {{ .Values.cloudstorage.iam.apikey }} -a {{ .Values.cloudstorage.iam.endpoint }}
 TOKEN=$(bx iam oauth-tokens | grep "IAM token:" | cut -d " " -f5)

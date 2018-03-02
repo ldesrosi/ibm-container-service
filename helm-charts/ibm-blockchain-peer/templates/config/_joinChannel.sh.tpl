@@ -6,10 +6,12 @@ export CORE_PEER_MSPCONFIGPATH=/data/peerOrganizations/{{ .Values.target.org.dom
 cd /data
 
 {{- range .Values.consortium.channels }}
-echo "Fetching config block and joining channel {{ .name }}"
-/data/script/waitForFile.sh {{ $.Values.consortium.name }} block/{{ .name }}.block /data/{{ .name }}.block
-export FABRIC_CFG_PATH=/etc/hyperledger/fabric
-peer channel join -b {{ .name }}.block
+if [ ! -f /data/{{ .name }}.block ] ; then
+  echo "Fetching config block and joining channel {{ .name }}"
+  /data/script/waitForFile.sh {{ $.Values.consortium.name }} block/{{ .name }}.block /data/{{ .name }}.block
+  export FABRIC_CFG_PATH=/etc/hyperledger/fabric
+  peer channel join -b {{ .name }}.block
+fi
 {{- end }}
 
 {{- range $.Values.target.org.nodes }}
@@ -36,7 +38,7 @@ peer channel join -b {{ .name }}.block
         peer channel fetch newest -o ${ORDERER_URL} -c {{ .name }} 
         peer channel update -o ${ORDERER_URL} -c {{ .name }} -f /data/{{ .name }}-{{ $.Values.target.org.name }}-anchor.tx 
       else
-        echo "Peer {{ .shortName }} is NOT an anchor"
+        echo "Peer anchor already set for {{ .shortName }}"
       fi
     {{- end }}
   {{- end }}

@@ -18,7 +18,10 @@ fi
 
 export FABRIC_CFG_PATH=/etc/hyperledger/fabric
 {{- range .Values.consortium.channels }}
-echo "Creating channel {{ .name }}"
-peer channel create -o ${ORDERER_URL} -c {{ .name }} -f /data/{{ .name }}.tx
-/data/script/shareFile.sh {{ $.Values.consortium.name }} block/{{ .name }}.block /data/{{ .name }}.block
+/data/script/checkForFile.sh {{ $.Values.consortium.name }} block/{{ .name }}.block
+if [ $? != 0 ]; then
+  echo "Creating channel {{ .name }}"
+  peer channel create -o ${ORDERER_URL} -c {{ .name }} -f /data/{{ .name }}.tx
+  /data/script/shareFile.sh {{ $.Values.consortium.name }} block/{{ .name }}.block /data/{{ .name }}.block
+fi
 {{- end }}

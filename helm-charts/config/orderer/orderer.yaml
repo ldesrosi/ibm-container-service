@@ -1,5 +1,5 @@
-fabric_version: &fabric_version x86_64-1.1.0-alpha
-composer_version: &composer_version 0.16.0
+fabric_version: &fabric_version x86_64-1.1.0-rc1
+composer_version: &composer_version 0.17.6
 images:
   tools:
     repository: ldesrosi/fabric-tools-with-ca
@@ -23,12 +23,31 @@ redis:
 consortium:
   name: SampleConsortium
   channels:
-    - name: SampleChannel
+    - name: samplechannel
       orgs:
-        - Org1
-        - Org2
+        - <<: *Org1
+          nodes:
+            - <<: *Org1Peer1
+              endorsingPeer: true
+              chaincodeQuery: true
+              eventSource: true
+        - <<: *Org2
+          nodes:
+            - <<: *Org2Peer1
+              endorsingPeer: true
+              chaincodeQuery: true
+              eventSource: true
+      bnas:
+        - name: demo-network
+          bna_url: https://github.com/ldesrosi/trading-smart-contract/releases/download/v1.1.0/network.bna
+          endorsement_url: https://github.com/ldesrosi/trading-smart-contract/releases/download/v1.1.0/endorsement.json
+          admins:
+            - id: demoOrg1Admin
+              org: *Org1
+            - id: demoOrg2Admin
+              org: *Org2
 ordererOrganizations:
-  - &targetOrderer
+  - &ordererorg
     name: ordererorg
     domain: example.com
     mspid: OrdererMSP
@@ -60,14 +79,16 @@ ordererOrganizations:
             externalPort: 36000
             internalPort: 9092
 peerOrganizations:
-  - name:  Org1
+  - &Org1
+    name:  Org1
     mspid: Org1MSP
     domain: org1.example.com
     admin_principal: Role.MEMBER 
     ca:
       url: org1-ca:7054
     nodes:
-      - shortName: peer1
+      - &Org1Peer1
+        shortName: peer1
         peerType: anchor
         ca:
           url: org1-ca:7054
@@ -78,14 +99,16 @@ peerOrganizations:
           externalPort: 30110
           eventInternalPort: 7053
           eventExternalPort: 30111
-  - name: Org2
+  - &Org2
+    name: Org2
     mspid: Org2MSP
     domain: org2.example.com
     admin_principal: Role.MEMBER 
     ca:
       url: org2-ca:7054
     nodes:
-      - shortName: peer1
+      - &Org2Peer1
+        shortName: peer1
         peerType: anchor
         ca:
           url: org2-ca:7054
@@ -97,4 +120,4 @@ peerOrganizations:
           eventInternalPort: 7053
           eventExternalPort: 30211
 target:
-  orderer: *targetOrderer
+  orderer: *ordererorg

@@ -1,5 +1,5 @@
-fabric_version: &fabric_version x86_64-1.1.0-alpha
-composer_version: &composer_version 0.16.0
+fabric_version: &fabric_version x86_64-1.1.0-rc1
+composer_version: &composer_version 0.17.6
 images:
   tools:
     repository: ldesrosi/fabric-tools-with-ca
@@ -25,18 +25,41 @@ consortium:
   channels:
     - name: samplechannel
       orgs:
-        - Org1
-        - Org2
+        - <<: *Org1
+          nodes:
+            - <<: *Org1Peer1
+              endorsingPeer: true
+              chaincodeQuery: true
+              eventSource: true
+        - <<: *Org2
+          nodes:
+            - <<: *Org2Peer1
+              endorsingPeer: true
+              chaincodeQuery: true
+              eventSource: true
+      bnas:
+        - name: demo-network
+          bna_url: https://github.com/ldesrosi/trading-smart-contract/releases/download/v1.1.0/network.bna
+          endorsement_url: https://github.com/ldesrosi/trading-smart-contract/releases/download/v1.1.0/endorsement.json
+          admins:
+            - id: demoOrg1Admin
+              enrolment_id: demoAdmin
+              enrolment_password: adminpw
+              org: *Org1
+            - id: demoOrg2Admin
+              org: *Org2
 ordererOrganizations: 
-  - &targetOrderer
+  - &ordererorg
     name: ordererorg
     domain: example.com
     mspid: OrdererMSP
     ca:
+      name: network-ca
       url: network-ca:7054
     nodes: 
       - name: orderer1
         ca:
+          name: network-ca
           url: network-ca:7054
         service:
           name: network-orderer
@@ -44,19 +67,23 @@ ordererOrganizations:
           internalPort: 7050
           externalPort: 31010
 peerOrganizations:
-  - &targetOrg
+  - &Org1
     name:  Org1
     mspid: Org1MSP
     domain: org1.example.com
+    admin_principal: MEMBER
     ca:
+      name: org1-ca
       url: org1-ca:7054
       admin:
         enrollment_id: org1admin
         enrollment_password: adminpw
     nodes:
-      - shortName: peer1
+      - &Org1Peer1
+        shortName: peer1
         peerType: anchor
         ca:
+          name: org1-ca
           url: org1-ca:7054
           node: 
             enrollment_id: peer1org1
@@ -68,15 +95,20 @@ peerOrganizations:
           externalPort: 30110
           eventInternalPort: 7053
           eventExternalPort: 30111
-  - name: Org2
+  - &Org2
+    name: Org2
     mspid: Org2MSP
     domain: org2.example.com
+    admin_principal: MEMBER
     ca:
+      name: org2-ca
       url: org2-ca:7054
     nodes:
-      - shortName: peer1
+      - &Org2Peer1
+        shortName: peer1
         peerType: anchor
         ca:
+          name: org2-ca
           url: org2-ca:7054
         service:
           name: org2-peer1
@@ -86,5 +118,5 @@ peerOrganizations:
           eventInternalPort: 7053
           eventExternalPort: 30211
 target:
-  orderer: *targetOrderer
-  org: *targetOrg
+  orderer: *ordererorg
+  org: *Org1

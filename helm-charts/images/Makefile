@@ -1,6 +1,6 @@
 BASE_NAME			= fabric-tools
 NAME				= $(BASE_NAME)-with-ca
-TAGS				= x86_64-1.1.0-alpha
+TAGS				= x86_64-1.1.0-rc1
 BASE_DOCKER_IMAGE	= $(BASE_NAME):$(TAGS)
 BASE_REGISTRY		= hyperledger
 CUSTOM_DOCKER_IMAGE = $(NAME):$(TAGS)
@@ -29,7 +29,7 @@ build_client: clean
 	mkdir -p $(ROOT_DIR)/src/
 	mkdir -p $(ROOT_DIR)/src/github.com/
 	mkdir -p $(ROOT_DIR)/src/github.com/hyperledger/
-	git clone https://github.com/hyperledger/fabric-ca.git --branch v1.1.0-alpha $(ROOT_DIR)/src/github.com/hyperledger/fabric-ca
+	git clone https://github.com/hyperledger/fabric-ca.git --branch v1.1.0-rc1 $(ROOT_DIR)/src/github.com/hyperledger/fabric-ca
 	export GOPATH="$(ROOT_DIR)"; make -C $(ROOT_DIR)/src/github.com/hyperledger/fabric-ca fabric-ca-client
 
 .PHONY: build_docker

@@ -10,6 +10,8 @@ spec:
     metadata:
       labels:
         name: {{ $.Values.target.org.name | lower }}{{ $node.service.shortName }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") $ | sha256sum }}
     spec:
       containers:
       - name: peer

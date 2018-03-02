@@ -34,7 +34,7 @@ Profiles:
             <<: *ApplicationDefaults
             Organizations:
                 {{- range .orgs }}
-                - *{{ . }}
+                - *{{ .name }}
                 {{- end }}
     {{- end }}
 
@@ -60,7 +60,7 @@ Organizations:
         ID: {{ .mspid }}
 
         # MSPDir is the filesystem path which contains the MSP configuration
-        MSPDir: /data/ordererOrganizations/{{ .domain }}/msp
+        MSPDir: ordererOrganizations/{{ .domain }}/msp
 
         # AdminPrincipal dictates the type of principal used for an organization's Admins policy
         # Today, only the values of Role.ADMIN ad Role.MEMBER are accepted, which indicates a principal
@@ -78,7 +78,7 @@ Organizations:
         # ID to load the MSP definition as
         ID: {{ .mspid }}
 
-        MSPDir: /data/peerOrganizations/{{ .domain }}/msp/
+        MSPDir: peerOrganizations/{{ .domain }}/msp/
 
         # AdminPrincipal dictates the type of principal used for an organization's Admins policy
         # Today, only the values of Role.ADMIN ad Role.MEMBER are accepted, which indicates a principal

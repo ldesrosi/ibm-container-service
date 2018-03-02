@@ -1,5 +1,5 @@
-fabric_version: &fabric_version x86_64-1.1.0-alpha
-composer_version: &composer_version 0.16.0
+fabric_version: &fabric_version x86_64-1.1.0-rc1
+composer_version: &composer_version 0.17.6
 images:
   tools:
     repository: ldesrosi/fabric-tools-with-ca

@@ -101,10 +101,15 @@ mkdir -p $PEER_MSP_DIR
 fabric-ca-client enroll \
                  -u "http://{{ .ca.node.enrollment_id }}:{{ .ca.node.enrollment_password }}@{{ .ca.url }}" \
                  -M $PEER_MSP_DIR
+/data/script/shareFile.sh {{ $.Values.consortium.name | lower }} cert/{{ .shortName }}-{{ $org }} \
+                          $PEER_MSP_DIR/signcerts/cert.pem
 {{ else }}
-cp -pR /data/peerOrganizations/{{ $domain }}/msp/ $PEER_MSP_DIR
+cp -pR /data/peerOrganizations/{{ $domain }}/msp/* $PEER_MSP_DIR
+/data/script/waitForFile.sh {{ $.Values.consortium.name | lower }} cert/{{ .shortName }}-{{ $org }} \
+                            $PEER_MSP_DIR/signcerts/cert.pem
 {{ end }}
-cp -pR $ADMIN_MSP_DIR/admincerts $PEER_MSP_DIR/admincerts
+mkdir -p $PEER_MSP_DIR/admincerts/
+cp -pR $ADMIN_MSP_DIR/admincerts/* $PEER_MSP_DIR/admincerts/
 {{ end }}
 
 {{ end }}
