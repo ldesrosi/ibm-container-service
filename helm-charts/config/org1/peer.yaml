@@ -38,7 +38,7 @@ consortium:
               chaincodeQuery: true
               eventSource: true
       bnas:
-        - name: demo-network
+        - name: trade-network
           bna_url: https://github.com/ldesrosi/trading-smart-contract/releases/download/v1.1.0/network.bna
           endorsement_url: https://github.com/ldesrosi/trading-smart-contract/releases/download/v1.1.0/endorsement.json
           admins:

@@ -14,32 +14,35 @@ if [ ! -f /data/{{ .name }}.block ] ; then
 fi
 {{- end }}
 
-{{- range $.Values.target.org.nodes }}
+{{- range $i, $node := .Values.target.org.nodes }}
+  {{ if eq $node.peerType "anchor"}}
+    echo "Peer {{ $node.shortName }} is an anchor"
+    {{- range $j, $channel := $.Values.consortium.channels }}
+      {{- range $k, $org := $channel.orgs }}
+        {{ if eq $.Values.target.org.name $org.name }}
+          /data/script/checkForFile.sh {{ $.Values.consortium.name | lower }} \
+                                      channel/{{ $channel.name }}-{{ $.Values.target.org.name }}-{{ $node.shortName }}-anchor.tx
 
-  {{ if eq .peerType "anchor"}}
-    echo "Peer {{ .shortName }} is an anchor"
-    {{- range $.Values.consortium.channels }}
-      /data/script/checkForFile.sh {{ $.Values.consortium.name | lower }} \
-                                   channel/{{ .name }}-{{ $.Values.target.org.name }}-anchor.tx
+          if [[ $? != 0 ]]; then
+            echo "Creating anchor tx for channel {{ $channel.name }} and peer {{ $node.shortName }}"
+            export FABRIC_CFG_PATH=/data
+            configtxgen -profile {{ $channel.name }}Channel \
+                        -outputAnchorPeersUpdate /data/{{ $channel.name }}-{{ $.Values.target.org.name }}-{{ $node.shortName }}-anchor.tx \
+                        -channelID {{ $channel.name }} -asOrg {{ $.Values.target.org.name }}
 
-      if [[ $? != 0 ]]; then
-        echo "Creating anchor tx for {{ .name }}"
-        export FABRIC_CFG_PATH=/data
-        configtxgen -profile {{ .name }}Channel \
-                    -outputAnchorPeersUpdate /data/{{ .name }}-{{ $.Values.target.org.name }}-anchor.tx \
-                    -channelID {{ .name }} -asOrg {{ $.Values.target.org.name }}
+            /data/script/shareFile.sh {{ $.Values.consortium.name | lower }} \
+                                      channel/{{ $channel.name }}-{{ $.Values.target.org.name }}-{{ $node.shortName }}-anchor.tx \
+                                      /data/{{ $channel.name }}-{{ $.Values.target.org.name }}-{{ $node.shortName }}-anchor.tx
 
-        /data/script/shareFile.sh {{ $.Values.consortium.name | lower }} \
-                                  channel/{{ .name }}-{{ $.Values.target.org.name }}-anchor.tx \
-                                  /data/{{ .name }}-{{ $.Values.target.org.name }}-anchor.tx
-
-        echo "Updating channel with anchor tx for {{ .name }}"
-        export FABRIC_CFG_PATH=/etc/hyperledger/fabric
-        peer channel fetch newest -o ${ORDERER_URL} -c {{ .name }} 
-        peer channel update -o ${ORDERER_URL} -c {{ .name }} -f /data/{{ .name }}-{{ $.Values.target.org.name }}-anchor.tx 
-      else
-        echo "Peer anchor already set for {{ .shortName }}"
-      fi
+            echo "Updating channel with anchor tx for {{ $channel.name }}"
+            export FABRIC_CFG_PATH=/etc/hyperledger/fabric
+            peer channel fetch newest -o ${ORDERER_URL} -c {{ $channel.name }} 
+            peer channel update -o ${ORDERER_URL} -c {{ $channel.name }} -f /data/{{ $channel.name }}-{{ $.Values.target.org.name }}-{{ $node.shortName }}-anchor.tx 
+          else
+            echo "Peer anchor already set for {{ $node.shortName }}"
+          fi
+        {{- end }}
+      {{- end }} 
     {{- end }}
   {{- end }}
 {{- end }}

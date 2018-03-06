@@ -23,8 +23,12 @@ composer runtime install -c PeerAdmin@{{ $.Values.consortium.name | lower }} -n 
 composer identity request -c PeerAdmin@{{ $.Values.consortium.name | lower }} -u {{ $admin.enrolment_id }} -s {{ $admin.enrolment_password }} -d {{ $admin.id }}
 
 composer card create -p /data/profile/{{ $.Values.target.org.name }}-ConnectionProfile.json \
-                     -u {{ $admin.id }} -n {{ $bna.name }} -c {{ $admin.id }}/admin-pub.pem -k {{ $admin.id }}/admin-priv.pem
-/data/script/shareFile.sh {{ $.Values.consortium.name }} cert/{{ $admin.id }} {{ $admin.id }}/admin-pub.pem
+                     -u {{ $admin.id }} -n {{ $bna.name }} -c {{ $admin.id }}/{{ $admin.enrolment_id }}-pub.pem \
+                     -k {{ $admin.id }}/{{ $admin.enrolment_id }}-priv.pem \
+                     -f /data/card/{{ $admin.id }}@{{ $.Values.consortium.name | lower }}.card
+
+/data/script/shareFile.sh {{ $.Values.consortium.name }} cert/{{ $admin.id }} \
+                          {{ $admin.id }}/{{ $admin.enrolment_id }}-pub.pem
 {{ end }}
 {{ end }}
 {{ end }}

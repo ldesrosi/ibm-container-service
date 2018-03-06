@@ -38,7 +38,7 @@ consortium:
               chaincodeQuery: true
               eventSource: true
       bnas:
-        - name: demo-network
+        - name: trade-network
           bna_url: https://github.com/ldesrosi/trading-smart-contract/releases/download/v1.1.0/network.bna
           endorsement_url: https://github.com/ldesrosi/trading-smart-contract/releases/download/v1.1.0/endorsement.json
           admins:
@@ -54,10 +54,12 @@ ordererOrganizations:
     domain: example.com
     mspid: OrdererMSP
     ca:
+      name: network-ca
       url: network-ca:7054
     nodes: 
       - name: orderer1
         ca:
+          name: network-ca
           url: network-ca:7054
         service:
           name: network-orderer
@@ -70,12 +72,14 @@ peerOrganizations:
     mspid: Org1MSP
     domain: org1.example.com
     ca:
+      name: org1-ca
       url: org1-ca:7054
     nodes:
       - &Org1Peer1
         shortName: peer1
         peerType: anchor
         ca:
+          name: org1-ca
           url: org1-ca:7054
         service:
           name: org1-peer1
@@ -89,6 +93,7 @@ peerOrganizations:
     mspid: Org2MSP
     domain: org2.example.com
     ca:
+      name: org2-ca
       url: org2-ca:7054
       admin:
         enrollment_id: org2admin
@@ -98,6 +103,7 @@ peerOrganizations:
         shortName: peer1
         peerType: anchor
         ca:
+          name: org2-ca
           url: org2-ca:7054
           node: 
             enrollment_id: peer1org2

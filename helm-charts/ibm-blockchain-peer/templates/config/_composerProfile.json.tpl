@@ -1,6 +1,7 @@
 {
     "name": "{{ .Values.consortium.name | lower }}",    
     "x-type": "hlfv1",
+    "version": "1.0.0",
     "client": {
         "organization": "{{ .Values.target.org.name }}",
         "connection": {
@@ -69,8 +70,8 @@
     "peers": {
         {{- range $i, $org := .Values.peerOrganizations -}}
         {{- range $j, $node := $org.nodes }}
-        "{{ $node.service.name }}.{{ $org.domain }}": {
-            "url": "grpcs://{{ $node.service.name }}:{{ $node.service.internalPort }}",
+        "{{ $node.shortName }}.{{ $org.domain }}": {
+            "url": "grpc://{{ $node.service.name }}:{{ $node.service.internalPort }}",
             "eventUrl": "grpc://{{ $node.service.name }}:{{ $node.service.eventInternalPort }}",
             "grpcOptions": {
                 "ssl-target-name-override": "{{ $node.service.name }}.{{ $org.domain }}"
