@@ -1,0 +1,142 @@
+fabric_version: &fabric_version x86_64-1.1.0-rc1
+composer_version: &composer_version 0.17.6
+images:
+  tools:
+    repository: ldesrosi/fabric-tools-with-ca
+    tag: *fabric_version
+    pullPolicy: IfNotPresent
+  peers:
+    repository: hyperledger/fabric-peer
+    tag: *fabric_version
+    pullPolicy: IfNotPresent 
+  rest:
+    repository: hyperledger/composer-rest-server
+    tag: *composer_version
+    pullPolicy: IfNotPresent
+  playground:
+    repository: hyperledger/composer-playground
+    tag: *composer_version
+    pullPolicy: IfNotPresent
+redis:
+  host: network-store-redis
+  password: secretpassword
+consortium:
+  name: SampleConsortium
+  channels:
+    - name: samplechannel
+      orgs:
+        - <<: *Org1
+          nodes:
+            - <<: *Org1Peer1
+              endorsingPeer: true
+              chaincodeQuery: true
+              eventSource: true
+        - <<: *Org2
+          nodes:
+            - <<: *Org2Peer1
+              endorsingPeer: true
+              chaincodeQuery: true
+              eventSource: true
+            - <<: *Org2Peer2
+              endorsingPeer: true
+              chaincodeQuery: true
+              eventSource: true
+      bnas:
+        - name: trade-network
+          bna_url: https://github.com/ldesrosi/trading-smart-contract/releases/download/v1.1.0/network.bna
+          endorsement_url: https://github.com/ldesrosi/trading-smart-contract/releases/download/v1.1.0/endorsement.json
+          admins:
+            - id: demoOrg1Admin
+              org: *Org1
+            - id: demoOrg2Admin
+              enrolment_id: org2admin
+              enrolment_password: adminpw
+              org: *Org2
+ordererOrganizations: 
+  - &ordererorg
+    name: ordererorg
+    domain: example.com
+    mspid: OrdererMSP
+    admin_principal: Role.MEMBER 
+    ca:
+      name: network-ca
+      url: network-ca:7054
+    nodes: 
+      - name: orderer1
+        ca:
+          name: network-ca
+          url: network-ca:7054
+        service:
+          name: network-orderer
+          type: NodePort
+          internalPort: 7050
+          externalPort: 31010  
+peerOrganizations:
+  - &Org1
+    name:  Org1
+    mspid: Org1MSP
+    domain: org1.example.com
+    admin_principal: Role.MEMBER
+    ca:
+      name: org1-ca
+      url: org1-ca:7054
+    nodes:
+      - &Org1Peer1
+        shortName: peer1
+        peerType: anchor
+        ca:
+          name: org1-ca
+          url: org1-ca:7054
+        service:
+          name: org1-peer1
+          type: NodePort
+          internalPort: 7051
+          externalPort: 30110
+          eventInternalPort: 7053
+          eventExternalPort: 30111
+  - &Org2
+    name: Org2
+    mspid: Org2MSP
+    domain: org2.example.com
+    admin_principal: Role.MEMBER
+    ca:
+      name: org2-ca
+      url: org2-ca:7054
+      admin:
+        enrollment_id: org2admin
+        enrollment_password: adminpw
+    nodes:
+      - &Org2Peer1
+        shortName: peer1
+        peerType: anchor
+        ca:
+          name: org2-ca
+          url: org2-ca:7054
+          node: 
+            enrollment_id: peer1org2
+            enrollment_password: adminpw
+        service:
+          name: org2-peer1
+          type: NodePort
+          internalPort: 7051
+          externalPort: 30210
+          eventInternalPort: 7053
+          eventExternalPort: 30211
+      - &Org2Peer2
+        shortName: peer2
+        peerType: standard
+        ca:
+          url: org2-ca:7054
+          node: 
+            enrollment_id: peer2org2
+            enrollment_password: adminpw
+        service:
+          name: org2-peer2
+          type: NodePort
+          internalPort: 7051
+          externalPort: 30220
+          eventInternalPort: 7053
+          eventExternalPort: 30221
+target:
+  orderer: *ordererorg
+  org: *Org2

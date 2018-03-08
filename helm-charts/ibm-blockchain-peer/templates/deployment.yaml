@@ -1,44 +1,66 @@
-{{- range .Values.orgs }}  
-{{- $org_name := .org.name -}}
-{{- range .org.anchor_peers }} 
+{{- range $i, $node := .Values.target.org.nodes }} 
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: {{ .service.name }}
+  name: {{ $node.service.name }}
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        name: {{ $org_name | lower}}{{ .service.shortName }}
+        name: {{ $.Values.target.org.name | lower }}{{ $node.service.shortName }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") $ | sha256sum }}
     spec:
       containers:
       - name: peer
-        image: "{{ $.Values.peer.image.repository}}:{{ $.Values.peer.image.tag}}"
-        command: ["sh", "-c", "peer node start --peer-defaultchain=false"]
+        image: "{{ $.Values.images.peers.repository}}:{{ $.Values.images.peers.tag}}"
+        imagePullPolicy: {{ $.Values.images.peers.pullPolicy }}
+        command: ["sh", "-c", "peer node start"]
         envFrom:
         - configMapRef:
-            name: {{ .service.name }}      
+            name: {{ $node.service.name }}      
         volumeMounts:
-        - mountPath: /shared
-          name: shared
+        - mountPath: /data
+          name: data
+        - mountPath: /peer-config
+          name: peer-config 
         - mountPath: /host/var/run/docker.sock
           name: dockersocket
-      initContainers:
-      - name: init-orderer
-        image: busybox
-        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/bootstrapped ]; do echo Waiting for bootstrap; sleep 1; done"]
+      - name: cli-{{ $i }}
+        image: "{{ $.Values.images.tools.repository }}:{{ $.Values.images.tools.tag }}"
+        imagePullPolicy: {{$.Values.images.tools.pullPolicy}}
+        command: ["bash", "-c", "sleep 100000"]
+        envFrom:
+        - configMapRef:
+            name: {{ $node.service.name }}
         volumeMounts:
-        - mountPath: /shared
-          name: shared    
+        - mountPath: /data
+          name: data
+        - mountPath: /peer-config
+          name: peer-config 
+{{- if eq $i 0 }}
+      initContainers:
+      - name: init-peer
+        image: "{{ $.Values.images.tools.repository }}:{{ $.Values.images.tools.tag }}"
+        imagePullPolicy: {{ $.Values.images.tools.pullPolicy }}
+        command: ["sh", "-c", "chmod +x /peer-config/setup.sh && /peer-config/setup.sh"]
+        volumeMounts:
+        - mountPath: /data
+          name: data    
+        - mountPath: /peer-config
+          name: peer-config 
+{{- end }} 
       volumes:
-      - name: shared
+      - name: data
         persistentVolumeClaim:
-          claimName: shared-pvc
+          claimName: peer-pvc-{{ $.Release.Name | lower }}
+      - name: peer-config
+        configMap:
+          name: peer-config-{{ $.Release.Name | lower }}
       - name: dockersocket
         hostPath:
           path: /var/run/docker.sock          
-{{- end }}
-{{- end }}          
+{{- end }}        
 

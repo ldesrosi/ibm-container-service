@@ -1,6 +1,4 @@
-{{- range .Values.orgs }}  
-{{- $org_name := .org.name -}}
-{{- range .org.anchor_peers }}  
+{{- range .Values.target.org.nodes }} 
 ---
 apiVersion: v1
 kind: Service
@@ -11,8 +9,8 @@ metadata:
 spec:
   type: {{ .service.type }}
   ports:
-    - port: {{ .service.externalPort }}
-      nodePort: {{ .service.internalPort }}
+    - port: {{ .service.internalPort }}
+      nodePort: {{ .service.externalPort }}
       protocol: TCP
       name: grpc
     - port: {{ .service.eventInternalPort }}
@@ -20,6 +18,5 @@ spec:
       protocol: TCP
       name: event      
   selector:
-    name: {{ $org_name | lower }}{{ .service.shortName }}
-{{- end }}
+    name: {{ $.Values.target.org.name | lower }}{{ .service.shortName }}
 {{- end }}

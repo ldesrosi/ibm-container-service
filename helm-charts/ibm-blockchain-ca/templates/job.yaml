@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: id-mgmt-job-{{ .Release.Name | lower }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    metadata:
+      name: id-mgmt-job-{{ .Release.Name | lower }}
+    spec:
+      containers:
+      - name: id-mgmt-job-{{ .Release.Name | lower }}
+        image: "{{ .Values.images.tools.repository }}:{{ .Values.images.tools.tag }}"
+        imagePullPolicy: Always
+        command: ["sh", "-c", "chmod +x /ca-config/processId.sh && /ca-config/processId.sh"]
+        volumeMounts:
+          - mountPath: /data
+            name: data
+          - mountPath: /ca-config
+            name: ca-config
+      restartPolicy: Never
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: ca-pvc-{{ .Release.Name | lower }}
+        - name: ca-config
+          configMap:
+            name: ca-config-{{ .Release.Name | lower }}

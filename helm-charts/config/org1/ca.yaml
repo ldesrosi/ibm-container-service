@@ -1,0 +1,68 @@
+fabric_version: &fabric_version x86_64-1.1.0-rc1
+composer_version: &composer_version 0.17.6
+images:
+  tools:
+    repository: ldesrosi/fabric-tools-with-ca
+    tag: *fabric_version
+    pullPolicy: IfNotPresent
+  peers:
+    repository: hyperledger/fabric-peer
+    tag: *fabric_version
+    pullPolicy: IfNotPresent 
+  rest:
+    repository: hyperledger/composer-rest-server
+    tag: *composer_version
+    pullPolicy: IfNotPresent
+  playground:
+    repository: hyperledger/composer-playground
+    tag: *composer_version
+    pullPolicy: IfNotPresent
+ca:
+  name: org1-ca
+  domain: org1.example.com
+  admin: &admin_user org1ca
+  password: &admin_password adminpw  
+  root:
+    hostname: network-ca
+    port: 7054
+  DNs:
+    - C: UK
+      ST: "Hampshire"
+      L: "Hursley"
+      O: "IBM"
+      OU: "Composer"  
+  affiliations:
+    - name: org1
+      departments:
+      - department1
+      - department2
+  registrar:
+    roles: "peer,client,user,validator,auditor"
+    delegatedRoles: "peer,client,user,validator,auditor"
+    intermediateCA: true
+    revoker: true
+    genCRL: true
+    attributes: "*"
+  identities:
+    - name: org1admin
+      secret: adminpw
+      type: client
+      affiliation: org1
+      attributes: "\"hf.Registrar.Roles=client\""
+    - name: demoAdmin
+      secret: adminpw
+      type: client
+      affiliation: org1
+      attributes: "\"hf.Registrar.Roles=client\""
+    - name: peer1org1
+      secret: adminpw
+      type: peer
+      affiliation: org1
+      attributes: "\"hf.Registrar.Roles=peer\",hf.IntermediateCA=false,hf.Revoker=false"
+  replicaCount: 1
+  service:
+    name: org1-ca
+    type: NodePort
+    externalPort: 30001
+    internalPort: 7054  
+  sub_cas:

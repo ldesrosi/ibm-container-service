@@ -1,33 +1,46 @@
+{{- range $i, $node := .Values.target.orderer.nodes }} 
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: blockchain-orderer
+  name: {{ .name }}-{{ $.Release.Name | lower }}
 spec:
-  replicas: {{ if eq .Values.orderers.type "solo" }}1{{ else }}.Values.orderers.replicaCount{{ end }} 
+  replicas: 1 
   template:
     metadata:
       labels:
-        name: orderer
+        name: {{ .name }}-{{ $.Release.Name | lower }}
     spec:
       containers:
-      - name: orderer
-        image: "{{ .Values.orderers.image.repository}}:{{ .Values.orderers.image.tag}}"
+      - name: {{ .name }}
+        image: "{{ $.Values.images.orderers.repository}}:{{ $.Values.images.orderers.tag}}"
+        imagePullPolicy: {{$.Values.images.orderers.pullPolicy}}
         command: ["sh", "-c", "orderer"]
         envFrom:
         - configMapRef:
-            name: blockchain-orderer
+            name: orderer-env-{{ .name }}-{{ $.Release.Name | lower }}
         volumeMounts:
-        - mountPath: /shared
-          name: shared
+        - mountPath: /data
+          name: data
+        - mountPath: /orderer-config
+          name: orderer-config
+{{- if eq $i 0 }}
       initContainers:
       - name: init-orderer
-        image: busybox
-        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/bootstrapped ]; do echo Waiting for bootstrap; sleep 1; done"]
+        image: "{{ $.Values.images.tools.repository }}:{{ $.Values.images.tools.tag }}"
+        imagePullPolicy: {{ $.Values.images.tools.pullPolicy }}
+        command: ["sh", "-c", "chmod +x /orderer-config/setup.sh && /orderer-config/setup.sh"]
         volumeMounts:
-        - mountPath: /shared
-          name: shared         
+        - mountPath: /data
+          name: data
+        - mountPath: /orderer-config
+          name: orderer-config 
+{{ end }}
       volumes:
-      - name: shared
+      - name: data
         persistentVolumeClaim:
-          claimName: shared-pvc
+          claimName: orderer-pvc-{{ $.Release.Name | lower }}
+      - name: orderer-config
+        configMap:
+          name: orderer-config-{{ $.Release.Name | lower }}
+{{ end }}

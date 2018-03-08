@@ -1,15 +1,18 @@
+{{- range $i, $node := .Values.target.orderer.nodes }} 
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.orderers.service.name }}
+  name: {{ .service.name }}
   labels:
-    run: {{ .Values.orderers.service.name }}
+    run: {{ .service.name }}
 spec:
-  type: {{ .Values.orderers.service.type }}
+  type: {{ .service.type }}
   selector:
-    name: orderer
+    name: {{ .name }}-{{ $.Release.Name | lower }}
   ports:
   - protocol: TCP
-    port: {{ .Values.orderers.service.internalPort }}
-    nodePort: {{ .Values.orderers.service.internalPort }}
+    port: {{ .service.internalPort }}
+    nodePort: {{ .service.externalPort }}
     name: grpc
+{{ end }}

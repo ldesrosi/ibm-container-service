@@ -1,14 +1,26 @@
 #/bin/bash
 
-helm install --wait --timeout 300 --values=./overrides.yaml --name control  ibm-blockchain-control 
-helm install --wait --timeout 300 --values=./overrides.yaml --name ca       ibm-blockchain-ca
-helm install --wait --timeout 300 --values=./overrides.yaml --name orderer  ibm-blockchain-orderer
-helm install --wait --timeout 300 --values=./overrides.yaml --name peer     ibm-blockchain-peer
-helm install --wait --timeout 300 --values=./overrides.yaml --name composer ibm-blockchain-composer
+function waitForJobCompletion() {
+    # Ensure arguments were passed
+    if [[ ${#} -ne 1 ]]; then
+        echo "Usage: ${FUNCNAME} <job_name>"
+        return -1
+    fi    
+    echo "Waiting for job ${1} to complete."
+    until kubectl get jobs --selector "job-name=${1}" \
+                           -o jsonpath='{.items[*].status.succeeded}' \
+                           | grep 1 ; 
+    do 
+       printf "."
+       sleep 1 ; 
+    done
+    echo "Job ${1} has completed."
+}
 
-export CONTROL=$(kubectl get po -l name=blockchain-control  -o 'jsonpath={.items[0].metadata.name}')
-
-sleep 60
-
-kubectl exec -ti ${CONTROL} -c cli -- /shared/script/quickSetup.sh
-kubectl exec -ti ${CONTROL} -c composer -- /shared/script/cardImport.sh /shared/org1-profile.json PeerAdmin ChannelAdmin org1.example.com
+helm upgrade --install --set redisPassword=secretpassword --set persistence.enabled=false network-store stable/redis
+helm upgrade --install --wait --values=./config/orderer/ca.yaml network-ca ibm-blockchain-ca
+helm upgrade --install --wait --values=./config/org1/ca.yaml org1-ca ibm-blockchain-ca
+helm upgrade --install --wait --values=./config/org2/ca.yaml org2-ca ibm-blockchain-ca
+helm upgrade --install --values=./config/org1/peer.yaml --set "generateGenesisBlock=true,instructions={createChannel,joinChannel,deployComposerRuntime,deployBNA}" org1-peer ibm-blockchain-peer &
+helm upgrade --install --values=./config/orderer/orderer.yaml network-orderer ibm-blockchain-orderer &
+helm upgrade --install --values=./config/org2/peer.yaml --set "instructions={joinChannel,deployComposerRuntime}" org2-peer ibm-blockchain-peer &

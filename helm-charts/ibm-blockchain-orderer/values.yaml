@@ -1,127 +1,73 @@
-fabric_version: &fabric_version 1.0.4
-tools:
-  image:
-    repository: ibmblockchain/fabric-tools
+fabric_version: &fabric_version x86_64-1.1.0-alpha
+images:
+  tools:
+    repository: ldesrosi/fabric-tools-with-ca
     tag: *fabric_version
     pullPolicy: IfNotPresent
-  profile: TwoOrgsOrdererGenesis
-chaincode:
-  repo: https://github.com/hyperledger/fabric
-  destination:  $GOPATH/src/github.com/hyperledger/fabric/
-  build_location: github.com/hyperledger/fabric/examples/chaincode/go/chaincode_example02/
-  parameters: "{\'Args\':[\'init\',\'a\',\'100\',\'b\',\'200\']}"
-  version: "v1"  
-  name: example02
-channel:
-  name: channel1
-  profile: TwoOrgsChannel
-composer: 
-  version: &composer_version 0.16.0
-  rest:
-    repository: hyperledger/composer-rest-server
-    tag: *composer_version
-    pullPolicy: IfNotPresent
-  playground:
-    repository: hyperledger/composer-playground
-    tag: *composer_version
-    pullPolicy: IfNotPresent
-  restServerCard: PeerAdmin
-ca:
-  image:
-    repository: ibmblockchain/fabric-ca
+  orderers:
+    repository: hyperledger/fabric-orderer
     tag: *fabric_version
-    pullPolicy: IfNotPresent
-  admin: &admin_user admin
-  password: &admin_password adminpw  
-  main:
+    pullPolicy: IfNotPresent 
+consortium:
+  name: SampleConsortium
+ordererOrganizations:
+  - &targetOrderer
+    name: ordererorg
+    domain: example.com
+    mspid: OrdererMSP
+    admin_principal: Role.MEMBER 
+    ca:
+      url: network-ca:7054
+      enrollment_id: ordererorg
+      enrollment_password: ordererpw
+    type: solo
     replicaCount: 1
     service:
-      name: blockchain-ca
+      name: blockchain-orderer
       type: NodePort
-      externalPort: 30000
-      internalPort: 7054  
-  sub_cas:
-    - name: CA1
-      replicaCount: 1
-      admin: *admin_user
-      password: *admin_password  
-      service:
-        name: blockchain-ca
-        type: NodePort
-        externalPort: 30000
-        internalPort: 7054
-      org: *Org1
-    - name: CA2
-      replicaCount: 1
-      admin: *admin_user
-      password: *admin_password  
-      service:
-        name: blockchain-ca
-        type: NodePort
-        externalPort: 30000
-        internalPort: 7054
-      org: *Org2
-orderers:
-  type: solo
-  replicaCount: 1
-  image:
-    repository: ibmblockchain/fabric-orderer
-    tag: *fabric_version
-    pullPolicy: IfNotPresent 
-  domain: example.com
-  name: OrdererOrg
-  id: OrdererMSP
-  admin_principal: Role.MEMBER 
-  service:
-    name: blockchain-orderer
-    type: NodePort
-    externalPort: 31010
-    internalPort: 31010  
-  kafka:
-    brokers:
-      - service:
-          name: broker1
+      externalPort: 31010
+      internalPort: 31010  
+    kafka:
+      brokers:
+        - service:
+            name: broker1
+            type: NodePort
+            externalPort: 36000
+            internalPort: 9092
+peerOrganizations:
+  - name:  Org1
+    mspid: Org1MSP
+    domain: org1.example.com
+    ca:
+      url: network-ca:7054
+    nodes:
+      - shortName: peer1
+        peerType: anchor
+        ca:
+          url: network-ca:7054
+        service:
+          name: blockchain-org1peer1
           type: NodePort
-          externalPort: 36000
-          internalPort: 9092  
-  anchor_peers: *Org1_peers
-peer:
-  image:
-    repository: ibmblockchain/fabric-peer
-    tag: *fabric_version
-    pullPolicy: IfNotPresent 
-orgs:
-  - org: &Org1
-      name: Org1
-      id: Org1MSP
-      domain: org1.example.com
-      admin_principal: Role.MEMBER
-      departments:
-        - department1
-        - department2
-      anchor_peers: 
-        - service: &Org1_peers
-            shortName: peer1
-            name: blockchain-org1peer1
-            type: NodePort
-            externalPort: 30110
-            internalPort: 30110
-            eventInternalPort: 30111
-            eventExternalPort: 30111
-  - org: &Org2
-      name: Org2
-      id: Org2MSP
-      domain: org2.example.com
-      admin_principal: Role.MEMBER
-      departments:
-        - department1
-      anchor_peers: 
-        - service: &Org2_peers
-            shortName: peer1
-            name: blockchain-org2peer1
-            type: NodePort
-            externalPort: 30210
-            internalPort: 30210 
-            eventInternalPort: 30211
-            eventExternalPort: 30211
-
+          externalPort: 30110
+          internalPort: 30110
+          eventInternalPort: 30111
+          eventExternalPort: 30111
+  - name: Org2
+    mspid: Org2MSP
+    domain: org2.example.com
+    ca:
+      url: network-ca:7054
+    nodes:
+      - shortName: peer1
+        peerType: anchor
+        ca:
+          url: network-ca:7054
+        service:
+          name: blockchain-org2peer2
+          type: NodePort
+          externalPort: 30210
+          internalPort: 30210
+          eventInternalPort: 30211
+          eventExternalPort: 30211
+target:
+  orderer: *targetOrderer

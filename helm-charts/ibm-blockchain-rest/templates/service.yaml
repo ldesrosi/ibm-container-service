@@ -1,0 +1,17 @@
+---
+# The service to expose composer rest server
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.rest.service.name }}
+  labels:
+    run: {{ .Values.rest.service.name }}
+spec:
+  type: {{ .Values.rest.service.type }}
+  selector:
+    name: {{ .Release.Name | lower }}
+  ports:
+  - protocol: TCP
+    port: {{ .Values.rest.service.internalPort }}
+    nodePort: {{ .Values.rest.service.externalPort }}
+    name: http

@@ -1,0 +1,28 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: composer-pv-{{ .Release.Name | lower }}
+  labels:
+    type: local
+    name: composer-pv-{{ .Release.Name | lower }}
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/composer-{{ .Release.Name | lower }}"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: composer-pvc-{{ .Release.Name | lower }}
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  selector:
+    matchLabels:
+      name: composer-pv-{{ .Release.Name | lower }}

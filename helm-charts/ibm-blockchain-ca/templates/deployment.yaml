@@ -1,32 +1,43 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: blockchain-ca
+  name: {{ .Release.Name | lower }}
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        name: ca
+        name: {{ .Release.Name | lower }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       containers:
       - name: ca
-        image: "{{ .Values.ca.image.repository}}:{{ .Values.ca.image.tag}}"
-        command: ["sh", "-c", "fabric-ca-server start -c ${CONFIGYAML}"]
-        envFrom:
-        - configMapRef:
-            name: blockchain-ca
+        image: "{{ .Values.images.ca.repository}}:{{ .Values.images.ca.tag}}"
+        imagePullPolicy: {{.Values.images.ca.pullPolicy}}
+        command: ["sh", "-c", "fabric-ca-server start"]
+        env:
+        - name: FABRIC_CA_HOME
+          value: /data/cas
         volumeMounts:
-        - mountPath: /shared
-          name: shared
+        - mountPath: /data
+          name: data
+        - mountPath: /ca-config
+          name: ca-config
       initContainers:
       - name: init-ca
-        image: busybox
-        command: ["sh", "-c", "sleep 1 && while [ ! -f /shared/bootstrapped ]; do echo Waiting for bootstrap; sleep 1; done;"]
+        image: "{{ .Values.images.ca.repository}}:{{ .Values.images.ca.tag}}"
+        imagePullPolicy: {{.Values.images.ca.pullPolicy}}
+        command: ["sh", "-c", "chmod +x /ca-config/setup.sh && /ca-config/setup.sh"]
         volumeMounts:
-        - mountPath: /shared
-          name: shared
+        - mountPath: /data
+          name: data
+        - mountPath: /ca-config
+          name: ca-config  
       volumes:
-      - name: shared
+      - name: data
         persistentVolumeClaim:
-          claimName: shared-pvc
+          claimName: ca-pvc-{{ .Release.Name | lower }}
+      - name: ca-config
+        configMap:
+          name: ca-config-{{ .Release.Name | lower }}
