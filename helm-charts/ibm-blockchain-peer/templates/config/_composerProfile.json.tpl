@@ -21,9 +21,9 @@
             "orderers": [
                 {{- range $j, $orderer := $.Values.ordererOrganizations -}}
                 {{- range $k, $node := $orderer.nodes }}
-                "{{ $node.service.name }}.{{ $orderer.domain }}"{{if $k}},{{end}}
+                "{{ $node.service.name }}.{{ $orderer.domain }}"
+                {{ if not (and (eq (sub (len $orderer.nodes) $k) 1) (eq (sub (len $.Values.ordererOrganizations) $j) 1)) }},{{- end -}}
                 {{- end -}}
-                {{- if $j -}},{{- end -}}
                 {{- end }}
             ],
             "peers": {
@@ -33,11 +33,11 @@
                     "endorsingPeer": {{ $node.endorsingPeer }},
                     "chaincodeQuery": {{ $node.chaincodeQuery }},
                     "eventSource": {{ $node.eventSource }} 
-                }{{ if not (or $j $k) }},{{- end -}}
+                }{{ if not (and (eq (sub (len $org.nodes) $k) 1) (eq (sub (len $channel.orgs) $j) 1)) }},{{- end -}}
                 {{- end -}}
             {{- end }}
             }
-        }
+        }{{ if not (eq (sub (len $.Values.consortium.channels) $i) 1) }},{{- end -}}
     {{- end }}
     },
     "organizations": {
@@ -46,13 +46,13 @@
             "mspid": "{{ $org.mspid}}",
             "peers": [
                 {{- range $j, $node := $org.nodes }}
-                "{{ $node.shortName }}.{{ $org.domain }}"{{if $j}},{{end}}
+                "{{ $node.shortName }}.{{ $org.domain }}"{{ if not (eq (sub (len $org.nodes) $j) 1) }},{{- end -}}
                 {{- end }}
             ],
             "certificateAuthorities": [
                 "{{ $org.ca.name }}.{{ $org.domain }}"
             ]
-        }{{if not $i }},{{ end -}}
+        }{{ if not (eq (sub (len $.Values.peerOrganizations) $i) 1) }},{{- end -}}
         {{ end }}
     },
     "orderers": {
@@ -63,7 +63,7 @@
             "grpcOptions": {
                 "ssl-target-name-override": "{{ $node.service.name }}.{{ $orderer.domain }}"
             }
-        }{{if or $i $j}},{{ end }}
+        }{{ if not (and (eq (sub (len $orderer.nodes) $j) 1) (eq (sub (len $.Values.ordererOrganizations) $i) 1)) }},{{- end -}}
         {{- end -}}
         {{- end }}
     },
@@ -76,7 +76,7 @@
             "grpcOptions": {
                 "ssl-target-name-override": "{{ $node.service.name }}.{{ $org.domain }}"
             }
-        }{{if not (or $i $j)}},{{end}}
+        }{{ if not (and (eq (sub (len $org.nodes) $j) 1) (eq (sub (len $.Values.peerOrganizations) $i) 1)) }},{{- end -}}
         {{- end -}}
         {{- end }}
     },
@@ -88,7 +88,7 @@
             "httpOptions": {
                 "verify": false
             }
-        }{{if not $i}},{{end}}
+        }{{ if not (eq (sub (len $.Values.peerOrganizations) $i) 1) }},{{- end -}}
         {{- end }}
     }
 }

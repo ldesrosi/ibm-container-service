@@ -11,7 +11,10 @@ if [ ! -f /data/{{ .name }}.block ] ; then
   /data/script/waitForFile.sh {{ $.Values.consortium.name }} block/{{ .name }}.block /data/{{ .name }}.block
 fi
 export FABRIC_CFG_PATH=/etc/hyperledger/fabric
-peer channel join -b {{ .name }}.block
+export CHANNEL_EXIST=$(peer channel list | grep {{ .name }})
+if [ "$CHANNEL_EXIST" != {{ .name }} ] ; then
+   peer channel join -b {{ .name }}.block
+fi
 {{- end }}
 
 {{- range $i, $node := .Values.target.org.nodes }}
