@@ -37,6 +37,10 @@ consortium:
               endorsingPeer: true
               chaincodeQuery: true
               eventSource: true
+            - <<: *Org2Peer2
+              endorsingPeer: true
+              chaincodeQuery: true
+              eventSource: true
       bnas:
         - name: trade-network
           bna_url: https://github.com/ldesrosi/trading-smart-contract/releases/download/v1.1.0/network.bna
@@ -45,7 +49,7 @@ consortium:
             - id: demoOrg1Admin
               org: *Org1
             - id: demoOrg2Admin
-              enrolment_id: demoAdmin
+              enrolment_id: org2admin
               enrolment_password: adminpw
               org: *Org2
 ordererOrganizations: 
@@ -53,6 +57,7 @@ ordererOrganizations:
     name: ordererorg
     domain: example.com
     mspid: OrdererMSP
+    admin_principal: Role.MEMBER 
     ca:
       name: network-ca
       url: network-ca:7054
@@ -71,6 +76,7 @@ peerOrganizations:
     name:  Org1
     mspid: Org1MSP
     domain: org1.example.com
+    admin_principal: Role.MEMBER
     ca:
       name: org1-ca
       url: org1-ca:7054
@@ -92,6 +98,7 @@ peerOrganizations:
     name: Org2
     mspid: Org2MSP
     domain: org2.example.com
+    admin_principal: Role.MEMBER
     ca:
       name: org2-ca
       url: org2-ca:7054
@@ -115,6 +122,21 @@ peerOrganizations:
           externalPort: 30210
           eventInternalPort: 7053
           eventExternalPort: 30211
+      - &Org2Peer2
+        shortName: peer2
+        peerType: standard
+        ca:
+          url: org2-ca:7054
+          node: 
+            enrollment_id: peer2org2
+            enrollment_password: adminpw
+        service:
+          name: org2-peer2
+          type: NodePort
+          internalPort: 7051
+          externalPort: 30220
+          eventInternalPort: 7053
+          eventExternalPort: 30221
 target:
   orderer: *ordererorg
   org: *Org2

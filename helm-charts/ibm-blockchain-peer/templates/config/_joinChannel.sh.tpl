@@ -9,9 +9,9 @@ cd /data
 if [ ! -f /data/{{ .name }}.block ] ; then
   echo "Fetching config block and joining channel {{ .name }}"
   /data/script/waitForFile.sh {{ $.Values.consortium.name }} block/{{ .name }}.block /data/{{ .name }}.block
-  export FABRIC_CFG_PATH=/etc/hyperledger/fabric
-  peer channel join -b {{ .name }}.block
 fi
+export FABRIC_CFG_PATH=/etc/hyperledger/fabric
+peer channel join -b {{ .name }}.block
 {{- end }}
 
 {{- range $i, $node := .Values.target.org.nodes }}
@@ -28,7 +28,7 @@ fi
             export FABRIC_CFG_PATH=/data
             configtxgen -profile {{ $channel.name }}Channel \
                         -outputAnchorPeersUpdate /data/{{ $channel.name }}-{{ $.Values.target.org.name }}-{{ $node.shortName }}-anchor.tx \
-                        -channelID {{ $channel.name }} -asOrg {{ $.Values.target.org.name }}
+                        -channelID {{ $channel.name }} -asOrg {{ $.Values.target.org.mspid }}
 
             /data/script/shareFile.sh {{ $.Values.consortium.name | lower }} \
                                       channel/{{ $channel.name }}-{{ $.Values.target.org.name }}-{{ $node.shortName }}-anchor.tx \

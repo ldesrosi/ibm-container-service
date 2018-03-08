@@ -43,7 +43,7 @@ consortium:
           endorsement_url: https://github.com/ldesrosi/trading-smart-contract/releases/download/v1.1.0/endorsement.json
           admins:
             - id: demoOrg1Admin
-              enrolment_id: demoAdmin
+              enrolment_id: org1admin
               enrolment_password: adminpw
               org: *Org1
             - id: demoOrg2Admin
@@ -53,6 +53,7 @@ ordererOrganizations:
     name: ordererorg
     domain: example.com
     mspid: OrdererMSP
+    admin_principal: Role.MEMBER 
     ca:
       name: network-ca
       url: network-ca:7054
@@ -71,7 +72,7 @@ peerOrganizations:
     name:  Org1
     mspid: Org1MSP
     domain: org1.example.com
-    admin_principal: MEMBER
+    admin_principal: Role.MEMBER
     ca:
       name: org1-ca
       url: org1-ca:7054
@@ -99,7 +100,7 @@ peerOrganizations:
     name: Org2
     mspid: Org2MSP
     domain: org2.example.com
-    admin_principal: MEMBER
+    admin_principal: Role.MEMBER
     ca:
       name: org2-ca
       url: org2-ca:7054
