@@ -28,6 +28,9 @@ while read name secret type affiliation attrs
  do
    if [ "$name" != "Name" ]; then
       fabric-ca-client register --id.name $name --id.secret $secret --id.type $type --id.affiliation $affiliation --id.attrs $attrs
+      kubectl delete secret $name --ignore-not-found=true
+      kubectl create secret generic $name --from-literal=password="$secret"
    fi
  done < /data/clients/idlist.csv
  IFS=$OLDIFS
+

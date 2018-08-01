@@ -1,0 +1,26 @@
+fabric_version: &fabric_version x86_64-1.1.0-rc1
+composer_version: &composer_version 0.17.6
+images:
+  tools:
+    repository: ldesrosi/fabric-tools-with-ca
+    tag: *fabric_version
+    pullPolicy: Always
+  orderers:
+    repository: hyperledger/fabric-orderer
+    tag: *fabric_version
+    pullPolicy: IfNotPresent 
+  peers:
+    repository: hyperledger/fabric-peer
+    tag: *fabric_version
+    pullPolicy: IfNotPresent 
+  rest:
+    repository: hyperledger/composer-rest-server
+    tag: *composer_version
+    pullPolicy: IfNotPresent
+  playground:
+    repository: hyperledger/composer-playground
+    tag: *composer_version
+    pullPolicy: IfNotPresent
+consul:
+  host: bc-service-discovery-consul.default.svc.cluster.local
+  port: 8500

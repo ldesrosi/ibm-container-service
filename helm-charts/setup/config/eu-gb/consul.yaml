@@ -1,0 +1,14 @@
+Replicas: 1
+StorageClass: "-"
+DatacenterName: eu-gb
+ImageTag: "1.0.6"
+
+ConsulDnsPort: 53
+
+External:
+  HttpPort: 30000
+  RpcPort: 30100
+  SerfwanPort: 30200
+  SerfwanUdpPort: 30200
+
+Domain: consul

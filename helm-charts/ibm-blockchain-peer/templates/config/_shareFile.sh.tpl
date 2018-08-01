@@ -7,6 +7,7 @@ if [ $# -ne 3 ];
 fi
 
 CONSORTIUM=$1
+DATACENTER="{{ .Values.target.orderer.datacenter }}"
 FILE_NAME=$2
 FILE_LOCATION=$3
 
@@ -19,5 +20,5 @@ curl -X "PUT" "https://{{ .Values.cloudstorage.endpoint }}/${CONSORTIUM}/${FILE_
  -H "Content-Type: application/x-pem-file" \
  --data-binary @"${FILE_LOCATION}"
 {{ else }}
-redis-cli -h {{ .Values.redis.host }} -a {{ .Values.redis.password }} -x set ${CONSORTIUM}/${FILE_NAME} < ${FILE_LOCATION} 
+consul kv put -http-addr={{ .Values.consul.host }}:{{ .Values.consul.port }} -datacenter=${DATACENTER} ${CONSORTIUM}/${FILE_NAME} @${FILE_LOCATION} 
 {{ end }}

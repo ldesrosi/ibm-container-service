@@ -31,11 +31,15 @@ done
 # Initializing the certificate authority
 echo "Initializing fabric-ca" 
 {{ if .Values.ca.root }}
+/data/script/waitForService.sh http {{ .Values.ca.root.hostname }}:{{ .Values.ca.root.port }} 404
 fabric-ca-server init -b {{ .Values.ca.admin }}:{{ .Values.ca.password }} \
                       -u http://{{ .Values.ca.admin }}:{{ .Values.ca.password }}@{{ .Values.ca.root.hostname }}:{{ .Values.ca.root.port }}
 {{ else }}
 fabric-ca-server init -b {{ .Values.ca.admin }}:{{ .Values.ca.password }}
 {{ end }}
 {{ end }}
+
+curl -X PUT -d '{"Datacenter": "{{ .Values.dc.name | lower }}", "Node": "{{ .Values.ca.service.name }}","Address": "{{ .Values.dc.ip }}", "Service": { "Service": "{{ .Values.ca.service.name }}", "Port": {{ .Values.ca.service.externalPort }} }}' http://{{ .Values.consul.host }}:8500/v1/catalog/register
+
 
 

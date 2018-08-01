@@ -4,7 +4,6 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: {{ .service.name }}
-  namespace: default
 data:
   CORE_PEER_ID: "{{ .shortName }}.{{ $.Values.target.org.domain }}"
   CORE_PEER_ADDRESS: "{{ .service.name }}:{{ .service.internalPort }}"  
@@ -32,7 +31,6 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: peer-config-{{ .Release.Name | lower }}
-  namespace: default
 data:
   setup.sh: |
 {{ include (print .Template.BasePath "/config/_setup.sh.tpl") . | indent 4 }}

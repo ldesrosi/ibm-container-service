@@ -11,6 +11,7 @@ spec:
       labels:
         name: {{ .name }}-{{ $.Release.Name | lower }}
     spec:
+      serviceAccountName: fabric-node
       containers:
       - name: {{ .name }}
         image: "{{ $.Values.images.orderers.repository}}:{{ $.Values.images.orderers.tag}}"

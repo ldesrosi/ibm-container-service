@@ -7,6 +7,7 @@ if [ $# -ne 3 ];
 fi
 
 CONSORTIUM=$1
+DATACENTER="{{ .Values.target.orderer.datacenter }}"
 FILE_NAME=$2
 FILE_LOCATION=$3
 
@@ -36,10 +37,11 @@ done
 {{ else }}
 while true
 do
-  RESULT=$(redis-cli -h {{ .Values.redis.host }} -a {{ .Values.redis.password }} --raw exists ${CONSORTIUM}/${FILE_NAME}) 
+  consul kv get -http-addr={{ .Values.consul.host }}:{{ .Values.consul.port }} -datacenter=${DATACENTER} ${CONSORTIUM}/${FILE_NAME} 2>/dev/null
+  RESULT=$?
   
-  if [[ ${RESULT} = 1 ]]; then
-    redis-cli -h {{ .Values.redis.host }} -a {{ .Values.redis.password }} get ${CONSORTIUM}/${FILE_NAME} | head -c -1 > ${FILE_LOCATION}
+  if [[ ${RESULT} = 0 ]]; then
+    consul kv get -http-addr={{ .Values.consul.host }}:{{ .Values.consul.port }} -datacenter=${DATACENTER} ${CONSORTIUM}/${FILE_NAME} > ${FILE_LOCATION}
     break;
   else 
     printf '.' ;

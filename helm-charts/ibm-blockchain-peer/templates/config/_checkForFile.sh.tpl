@@ -7,6 +7,7 @@ if [ $# -ne 2 ];
 fi
 
 CONSORTIUM=$1
+DATACENTER="{{ .Values.target.orderer.datacenter }}"
 FILE_NAME=$2
 
 {{ if .Values.cloudstorage }}
@@ -21,7 +22,9 @@ else
   exit 255;
 fi
 {{ else }}
-  if [[ $(redis-cli -h {{ .Values.redis.host }} -a {{ .Values.redis.password }} --raw exists ${CONSORTIUM}/${FILE_NAME}) = "1" ]]; then
+  consul kv get -http-addr={{ .Values.consul.host }}:{{ .Values.consul.port }} -datacenter=${DATACENTER} ${CONSORTIUM}/${FILE_NAME}
+  RESULT=$?
+  if [[ ${RESULT} = 0 ]]; then
     exit 0;
   else 
     exit 255;

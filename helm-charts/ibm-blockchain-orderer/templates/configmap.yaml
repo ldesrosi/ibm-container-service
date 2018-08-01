@@ -3,7 +3,6 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: orderer-env-{{ .name }}-{{ $.Release.Name | lower }}
-  namespace: default
 data:
   ORDERER_CFG_PATH: /data/
   ORDERER_GENERAL_LEDGERTYPE: file
@@ -28,7 +27,6 @@ kind: ConfigMap
 apiVersion: v1
 metadata:
   name: orderer-config-{{ .Release.Name | lower }}
-  namespace: default
 data:
   setup.sh: |
 {{ include (print .Template.BasePath "/config/_setup.sh.tpl") . | indent 4 }}

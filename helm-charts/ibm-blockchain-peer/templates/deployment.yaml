@@ -13,6 +13,7 @@ spec:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") $ | sha256sum }}
     spec:
+      serviceAccountName: fabric-node
       containers:
       - name: peer
         image: "{{ $.Values.images.peers.repository}}:{{ $.Values.images.peers.tag}}"

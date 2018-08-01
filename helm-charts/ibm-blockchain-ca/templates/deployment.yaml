@@ -11,6 +11,7 @@ spec:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
+      serviceAccountName: fabric-node
       containers:
       - name: ca
         image: "{{ .Values.images.ca.repository}}:{{ .Values.images.ca.tag}}"
@@ -26,7 +27,7 @@ spec:
           name: ca-config
       initContainers:
       - name: init-ca
-        image: "{{ .Values.images.ca.repository}}:{{ .Values.images.ca.tag}}"
+        image: "{{ .Values.images.tools.repository }}:{{ .Values.images.tools.tag }}"
         imagePullPolicy: {{.Values.images.ca.pullPolicy}}
         command: ["sh", "-c", "chmod +x /ca-config/setup.sh && /ca-config/setup.sh"]
         volumeMounts:

@@ -1,25 +1,3 @@
-fabric_version: &fabric_version x86_64-1.1.0-rc1
-composer_version: &composer_version 0.17.6
-images:
-  tools:
-    repository: ldesrosi/fabric-tools-with-ca
-    tag: *fabric_version
-    pullPolicy: IfNotPresent
-  peers:
-    repository: hyperledger/fabric-peer
-    tag: *fabric_version
-    pullPolicy: IfNotPresent 
-  rest:
-    repository: hyperledger/composer-rest-server
-    tag: *composer_version
-    pullPolicy: IfNotPresent
-  playground:
-    repository: hyperledger/composer-playground
-    tag: *composer_version
-    pullPolicy: IfNotPresent
-redis:
-  host: network-store-redis
-  password: secretpassword
 consortium:
   name: SampleConsortium
   channels:
@@ -49,75 +27,86 @@ consortium:
 ordererOrganizations:
   - &ordererorg
     name: ordererorg
-    domain: example.com
+    domain: ordererorg.service.eu-gb.consul
+    consul:
+      host: bc-service-discovery-ordererorg-consul
+      port: 8500
+    datacenter: eu-gb
     mspid: OrdererMSP
     admin_principal: Role.MEMBER 
     ca:
-      url: network-ca:7054
-      admin:
-        enrollment_id: ordereradmin
-        enrollment_password: ordererpw
+      url: network-ca.service.eu-gb.consul:30300
+      ref: ordereradmin
     type: solo
     replicaCount: 1
     nodes: 
       - name: orderer1
         ca:
-          url: network-ca:7054
-          node: 
-            enrollment_id: orderernode
-            enrollment_password: ordererpw
+          url: network-ca.service.eu-gb.consul:30300
+          ref: orderer
         service:
           name: network-orderer
           type: NodePort
           internalPort: 7050
-          externalPort: 31010  
+          externalPort: 30600  
     kafka:
       brokers:
         - service:
             name: broker1
             type: NodePort
-            externalPort: 36000
+            externalPort: 30700
             internalPort: 9092
 peerOrganizations:
   - &Org1
     name:  Org1
     mspid: Org1MSP
-    domain: org1.example.com
+    domain: org1.service.eu-de.consul
+    datacenter: eu-de
+    consul:
+      host: bc-service-discovery-consul
+      port: 8500    
+    datacenter: eu-de
     admin_principal: Role.MEMBER 
     ca:
-      url: org1-ca:7054
+      url: org1-ca.service.eu-de.consul:30301
+      ref: org1admin
     nodes:
       - &Org1Peer1
-        shortName: peer1
+        shortName: peer1org1
         peerType: anchor
         ca:
-          url: org1-ca:7054
+          url: org1-ca.service.eu-de.consul:30301
+          ref: peer1org1
         service:
-          name: org1-peer1
+          name: peer1org1
           type: NodePort
           internalPort: 7051
-          externalPort: 30110
+          externalPort: 31000
           eventInternalPort: 7053
-          eventExternalPort: 30111
+          eventExternalPort: 31100
   - &Org2
     name: Org2
     mspid: Org2MSP
-    domain: org2.example.com
+    domain: org2.service.eu-de.consul
+    consul:
+      host: bc-service-discovery-consul
+      port: 8500
+    datacenter: eu-de
     admin_principal: Role.MEMBER 
     ca:
-      url: org2-ca:7054
+      url: org2-ca.service.eu-de.consul:30302
+      ref: org2admin
     nodes:
       - &Org2Peer1
-        shortName: peer1
+        shortName: peer1org2
         peerType: anchor
         ca:
-          url: org2-ca:7054
+          url: org2-ca.service.eu-de.consul:30302
+          ref: peer1org2
         service:
-          name: org2-peer1
+          name: peer1org2
           type: NodePort
           internalPort: 7051
-          externalPort: 30210
+          externalPort: 31001
           eventInternalPort: 7053
-          eventExternalPort: 30211
-target:
-  orderer: *ordererorg
+          eventExternalPort: 31101

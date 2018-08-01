@@ -11,6 +11,7 @@ spec:
     metadata:
       name: id-mgmt-job-{{ .Release.Name | lower }}
     spec:
+      serviceAccountName: fabric-node
       containers:
       - name: id-mgmt-job-{{ .Release.Name | lower }}
         image: "{{ .Values.images.tools.repository }}:{{ .Values.images.tools.tag }}"

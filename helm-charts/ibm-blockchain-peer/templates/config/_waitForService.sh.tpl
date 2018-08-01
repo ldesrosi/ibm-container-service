@@ -15,12 +15,14 @@ while true ; do
    if [ "${PROTOCOL}" = "grpc" ]; then
       curl -s -o /dev/null --connect-timeout 2 ${URL}
       STATUS=$?
-   elif [ "${PROTOCOL}" = "http" ] || [ "${PROTOCOL}" = "https" ]; then
+   elif [ "${PROTOCOL}" = "http" ] || [ "${PROTOCOL}" = "https" ]; then  
      STATUS="$(curl -s -w %{http_code} -o /dev/null --connect-timeout 2 ${URL} )"
+     echo "Status is: ${STATUS} and return code is " $?
    else
      echo "Unknown protocol ${PROTOCOL}. Terminating."
      exit 255
    fi
+   echo "Status ${STATUS} Expected Status ${EXPECTED_STATUS}"
 
    if [ "${STATUS}" = "${EXPECTED_STATUS}" ]; then
      printf "\nService is up and running.\n"

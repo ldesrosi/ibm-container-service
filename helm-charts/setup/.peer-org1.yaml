@@ -4,7 +4,11 @@ images:
   tools:
     repository: ldesrosi/fabric-tools-with-ca
     tag: *fabric_version
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
+  orderers:
+    repository: hyperledger/fabric-orderer
+    tag: *fabric_version
+    pullPolicy: IfNotPresent 
   peers:
     repository: hyperledger/fabric-peer
     tag: *fabric_version
@@ -17,9 +21,9 @@ images:
     repository: hyperledger/composer-playground
     tag: *composer_version
     pullPolicy: IfNotPresent
-redis:
-  host: network-store-redis
-  password: secretpassword
+consul:
+  host: bc-service-discovery-consul.default.svc.cluster.local
+  port: 8500
 consortium:
   name: SampleConsortium
   channels:
@@ -37,10 +41,6 @@ consortium:
               endorsingPeer: true
               chaincodeQuery: true
               eventSource: true
-            - <<: *Org2Peer2
-              endorsingPeer: true
-              chaincodeQuery: true
-              eventSource: true
       bnas:
         - name: trade-network
           bna_url: https://github.com/ldesrosi/trading-smart-contract/releases/download/v1.1.0/network.bna
@@ -49,94 +49,92 @@ consortium:
             - id: demoOrg1Admin
               org: *Org1
             - id: demoOrg2Admin
-              enrolment_id: org2admin
-              enrolment_password: adminpw
               org: *Org2
-ordererOrganizations: 
+ordererOrganizations:
   - &ordererorg
     name: ordererorg
-    domain: example.com
+    domain: ordererorg.service.eu-gb.consul
+    consul:
+      host: bc-service-discovery-ordererorg-consul
+      port: 8500
+    datacenter: eu-gb
     mspid: OrdererMSP
     admin_principal: Role.MEMBER 
     ca:
-      name: network-ca
-      url: network-ca:7054
+      url: network-ca.service.eu-gb.consul:30300
+      ref: ordereradmin
+    type: solo
+    replicaCount: 1
     nodes: 
       - name: orderer1
         ca:
-          name: network-ca
-          url: network-ca:7054
+          url: network-ca.service.eu-gb.consul:30300
+          ref: orderer
         service:
           name: network-orderer
           type: NodePort
           internalPort: 7050
-          externalPort: 31010  
+          externalPort: 30600  
+    kafka:
+      brokers:
+        - service:
+            name: broker1
+            type: NodePort
+            externalPort: 30700
+            internalPort: 9092
 peerOrganizations:
   - &Org1
     name:  Org1
     mspid: Org1MSP
-    domain: org1.example.com
-    admin_principal: Role.MEMBER
+    domain: org1.service.eu-de.consul
+    consul:
+      host: bc-service-discovery-consul
+      port: 8500    
+    datacenter: eu-de
+    admin_principal: Role.MEMBER 
     ca:
-      name: org1-ca
-      url: org1-ca:7054
+      url: org1-ca.service.eu-de.consul:30301
+      ref: org1admin
     nodes:
       - &Org1Peer1
-        shortName: peer1
+        shortName: peer1org1
         peerType: anchor
         ca:
-          name: org1-ca
-          url: org1-ca:7054
+          url: org1-ca.service.eu-de.consul:30301
+          ref: peer1org1
         service:
-          name: org1-peer1
+          name: peer1org1
           type: NodePort
           internalPort: 7051
-          externalPort: 30110
+          externalPort: 31000
           eventInternalPort: 7053
-          eventExternalPort: 30111
+          eventExternalPort: 31100
   - &Org2
     name: Org2
     mspid: Org2MSP
-    domain: org2.example.com
-    admin_principal: Role.MEMBER
+    domain: org2.service.eu-de.consul
+    consul:
+      host: bc-service-discovery-consul
+      port: 8500
+    datacenter: eu-de
+    admin_principal: Role.MEMBER 
     ca:
-      name: org2-ca
-      url: org2-ca:7054
-      admin:
-        enrollment_id: org2admin
-        enrollment_password: adminpw
+      url: org2-ca.service.eu-de.consul:30302
+      ref: org2admin
     nodes:
       - &Org2Peer1
-        shortName: peer1
+        shortName: peer1org2
         peerType: anchor
         ca:
-          name: org2-ca
-          url: org2-ca:7054
-          node: 
-            enrollment_id: peer1org2
-            enrollment_password: adminpw
+          url: org2-ca.service.eu-de.consul:30302
+          ref: peer1org2
         service:
-          name: org2-peer1
+          name: peer1org2
           type: NodePort
           internalPort: 7051
-          externalPort: 30210
+          externalPort: 31001
           eventInternalPort: 7053
-          eventExternalPort: 30211
-      - &Org2Peer2
-        shortName: peer2
-        peerType: standard
-        ca:
-          url: org2-ca:7054
-          node: 
-            enrollment_id: peer2org2
-            enrollment_password: adminpw
-        service:
-          name: org2-peer2
-          type: NodePort
-          internalPort: 7051
-          externalPort: 30220
-          eventInternalPort: 7053
-          eventExternalPort: 30221
+          eventExternalPort: 31101
 target:
   orderer: *ordererorg
-  org: *Org2
+  org: *Org1
